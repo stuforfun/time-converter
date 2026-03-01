@@ -1,0 +1,1724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Time Converter</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f5f0e8; --bg2:#e4dcd0; --wh:#ffffff;
+  --ink:#1a1510; --ink2:#3a4560; --ink3:#6b5f4e; --ink4:#9e8f7a;
+  --blue:#1a3a5c; --blue2:#2a5480; --bluebg:#d6e4f0; --bluebdr:#7a9abf;
+  --red:#7a1c1c; --redbdr:#c08090; --redbg:#fff8f8; --redtxt:#b07080;
+  --bdr:#c8b99a; --bdr2:#dfd3be; --outbg:#f0f4f8;
+  --ok:#1a5c2a; --okbg:#e8f5ec; --okbdr:#7abf8a;
+  --err:#8b1a1a; --errbg:#fdf0f0; --errbdr:#d98080;
+  --warn:#7a5c10; --warnbg:#fdf8e8;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--ink);font-family:'DM Mono',monospace;min-height:100vh;padding:36px 20px 80px;}
+.wrap{max-width:1080px;margin:0 auto;}
+
+/* ── HEADER ── */
+header{text-align:center;margin-bottom:44px;}
+.hline{height:1px;background:linear-gradient(90deg,transparent,var(--bdr),transparent);margin:10px 0;}
+h1{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,5vw,2.8rem);font-weight:400;letter-spacing:.04em;margin-bottom:4px;}
+.sub{font-size:.6rem;letter-spacing:.28em;text-transform:uppercase;color:var(--ink4);}
+
+
+/* ── LAYOUT ── */
+/* Mobile-first: stacked column */
+.layout{display:flex;flex-direction:column;gap:12px;}
+.conn-desktop{display:none;} /* shown by media query below */
+.conn-mobile{
+  display:flex;align-items:center;justify-content:center;
+  font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ink4);gap:8px;padding:4px 0;
+}
+.conn-mobile::before,.conn-mobile::after{content:'';flex:1;height:1px;background:var(--bdr2);}
+/* Desktop: 3-column grid */
+@media(min-width:740px){
+  .layout{display:grid;grid-template-columns:290px 48px 1fr;align-items:start;gap:0 0;}
+  .conn-mobile{display:none;}
+  .conn-desktop{
+    display:flex;align-items:flex-start;justify-content:center;
+    padding-top:26px;color:var(--ink4);font-size:.75rem;
+  }
+}
+.dest-col{display:flex;flex-direction:column;gap:10px;}
+
+/* ── CARDS ── */
+.origin-card,.dest-card{
+  background:var(--wh);padding:22px 20px;position:relative;overflow:hidden;
+}
+.origin-card{border:1.5px solid var(--bluebdr);box-shadow:3px 3px 0 var(--bg2);align-self:start;}
+.origin-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--blue);}
+.dest-card{border:1.5px solid var(--redbdr);box-shadow:3px 3px 0 var(--bg2);}
+.dest-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--red);}
+
+/* card header row */
+.card-actions{position:absolute;top:9px;right:10px;display:flex;gap:5px;align-items:center;}
+.copy-btn,.remove-btn{
+  background:none;font-family:'DM Mono',monospace;
+  font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;
+  padding:3px 8px;cursor:pointer;transition:all .15s;border:1px solid var(--bdr2);color:var(--ink4);
+}
+.copy-btn:hover{border-color:var(--blue);color:var(--blue);}
+.copy-btn.copied{border-color:var(--ok);color:var(--ok);}
+.remove-btn:hover{border-color:var(--red);color:var(--red);}
+
+.ptag{font-size:.57rem;letter-spacing:.25em;text-transform:uppercase;color:var(--ink4);display:flex;align-items:center;gap:6px;margin-bottom:16px;}
+.pdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.pdot-blue{background:var(--blue);}
+.pdot-red{background:var(--red);}
+
+/* ── FIELDS ── */
+.fld{margin-bottom:13px;}
+.fld:last-child{margin-bottom:0;}
+.flabel{display:block;font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ink3);margin-bottom:5px;}
+.flabel-row{display:flex;align-items:baseline;gap:0;margin-bottom:5px;}
+.flabel-row .flabel{margin-bottom:0;}
+.now-link{color:var(--blue2);border-bottom:1px dashed var(--blue2);cursor:pointer;margin-left:8px;font-size:.52rem;letter-spacing:.12em;text-transform:uppercase;}
+
+input[type=date],input[type=text],input[type=time]{
+  width:100%;background:var(--bg);border:1.5px solid var(--bdr2);border-bottom:2px solid var(--bdr);
+  color:var(--ink);font-family:'DM Mono',monospace;font-size:.88rem;
+  padding:9px 10px;outline:none;border-radius:0;-webkit-appearance:none;appearance:none;
+  transition:border-color .18s,background .18s;
+}
+input:focus{border-color:var(--blue);background:var(--wh);}
+input::placeholder{color:var(--ink4);font-size:.8rem;}
+input[type=time]::-webkit-datetime-edit-ampm-field{display:none;}
+input[type=time]::-webkit-calendar-picker-indicator{opacity:.3;width:13px;}
+input[type=date]::-webkit-calendar-picker-indicator{opacity:.3;cursor:pointer;}
+input.invalid{border-color:var(--errbdr);background:var(--errbg);}
+.err-msg{font-size:.6rem;color:var(--err);margin-top:4px;display:none;}
+.err-msg.show{display:block;}
+
+/* date+time row on desktop */
+.dt-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;min-width:0;}
+.dt-row>div{min-width:0;}
+.dt-row input{min-width:0;width:100%;}
+
+/* output boxes */
+.outbox{
+  background:var(--bg);border:1.5px solid var(--bdr2);border-bottom:2px solid var(--bdr);
+  font-family:'DM Mono',monospace;font-size:.88rem;padding:9px 10px;
+  min-height:40px;display:flex;align-items:center;color:var(--ink4);
+}
+.outbox.live{background:var(--outbg);color:var(--ink2);border-color:var(--bluebdr);border-left:3px solid var(--red);}
+@keyframes flash{0%{background:var(--bluebg);}100%{background:var(--outbg);}}
+.outbox.flash{animation:flash .4s ease;}
+
+/* result summary row */
+.result-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+
+/* ── DROPDOWN ── */
+.cwrap{position:relative;}
+.drop{display:none;position:absolute;top:calc(100% + 1px);left:0;right:0;z-index:9999;
+  background:var(--wh);border:1.5px solid var(--bdr);max-height:200px;overflow-y:auto;
+  box-shadow:0 8px 20px rgba(0,0,0,.1);}
+.drop.open{display:block;}
+.drow{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;
+  cursor:pointer;font-size:.76rem;border-bottom:1px solid var(--bdr2);}
+.drow:last-child{border-bottom:none;}
+.drow:hover,.drow.hi{background:var(--bluebg);}
+.dtz{font-size:.66rem;color:var(--ink4);}
+.dhl{color:var(--blue);font-weight:600;}
+
+/* ── FORMAT TOGGLE ── */
+.tog{display:inline-flex;border:1.5px solid var(--bdr);overflow:hidden;height:40px;align-self:end;}
+.tb{background:none;border:none;border-right:1.5px solid var(--bdr);
+  font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.08em;
+  padding:0 11px;cursor:pointer;color:var(--ink4);transition:background .15s;}
+.tb:last-child{border-right:none;}
+.tb.on{background:var(--blue);color:#fff;}
+
+/* ── ADD SLOT ── */
+.add-slot{border:1.5px dashed var(--bdr);background:transparent;padding:14px;
+  text-align:center;cursor:pointer;transition:border-color .2s,background .2s;}
+.add-slot:hover{border-color:var(--blue2);background:var(--bluebg);}
+.add-slot:hover .add-label{color:var(--blue2);}
+.add-label{font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;color:var(--ink4);transition:color .2s;}
+
+/* ── VALIDATION BANNER ── */
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div style="display:flex;align-items:center;gap:16px;margin-bottom:10px">
+    <div class="hline" style="flex:1"></div><span style="color:var(--blue)">✦</span><div class="hline" style="flex:1"></div>
+  </div>
+  <h1>Time Converter</h1>
+  <p class="sub">Enter a time &amp; place — get local time anywhere</p>
+  <div class="hline"></div>
+</header>
+
+<div class="layout">
+
+    <!-- ── ORIGIN ── -->
+    <div class="origin-card" id="origin-card">
+      <div class="ptag"><span class="pdot pdot-blue"></span>Origin</div>
+
+      <div class="fld">
+        <label class="flabel" for="from-inp">City</label>
+        <div class="cwrap">
+          <input type="text" id="from-inp" placeholder="e.g. Tokyo, Shanghai…" autocomplete="off"
+            role="combobox" aria-autocomplete="list" aria-expanded="false"
+            aria-controls="from-drop" aria-haspopup="listbox">
+          <div class="drop" id="from-drop" role="listbox" aria-label="City suggestions"></div>
+        </div>
+        <div class="err-msg" id="err-city">Please select a city from the list.</div>
+      </div>
+
+      <div class="fld">
+        <div class="dt-row">
+          <div>
+            <label class="flabel" for="in-date">Date</label>
+            <input type="date" id="in-date">
+            <div class="err-msg" id="err-date">Please enter a valid date.</div>
+          </div>
+          <div>
+            <div class="flabel-row">
+              <label class="flabel" for="in-time">Time (24h)</label>
+              <span class="now-link" id="now-btn">set now</span>
+            </div>
+            <input type="time" id="in-time" step="60">
+            <div class="err-msg" id="err-time">Please enter a time.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CONNECTOR ── -->
+    <div class="conn-desktop" aria-hidden="true">▶</div>
+    <div class="conn-mobile" aria-hidden="true">converts to</div>
+
+    <!-- ── DESTINATIONS ── -->
+    <div class="dest-col" id="dest-col">
+      <div class="add-slot" id="add-slot">
+        <div class="add-label">＋ &nbsp; Add destination</div>
+      </div>
+    </div>
+
+  </div><!-- /.layout -->
+
+</div><!-- /.wrap -->
+
+<script>
+/* ═══════════════════════════════════════════════
+   ALIASES  (old names / alternate spellings)
+═══════════════════════════════════════════════ */
+var ALIASES = {
+  "bombay":"Mumbai","calcutta":"Kolkata","madras":"Chennai",
+  "peking":"Beijing","canton":"Guangzhou","saigon":"Ho Chi Minh City",
+  "rangoon":"Yangon","edo":"Tokyo","christiania":"Oslo","leningrad":"St Petersburg",
+  "stalingrad":"Volgograd","byzantium":"Istanbul","constantinople":"Istanbul",
+  "batavia":"Jakarta","formosa":"Taipei","ceylon":"Colombo","siam":"Bangkok",
+  "persia":"Tehran","mesopotamia":"Baghdad","rhodesia":"Harare",
+  "salisbury":"Harare","lourenco marques":"Maputo","beira":"Beira",
+  "leopoldville":"Kinshasa","elisabethville":"Lubumbashi",
+  "saigon":"Ho Chi Minh City","phnom penh":"Phnom Penh",
+  "new amsterdam":"New York","nieuw amsterdam":"New York",
+  "san francisco":"San Francisco","la":"Los Angeles","nyc":"New York",
+  "dc":"Washington DC","sf":"San Francisco","hk":"Hong Kong",
+  "sg":"Singapore","kl":"Kuala Lumpur","jb":"Johor Bahru",
+  "bkk":"Bangkok","yvr":"Vancouver","yyz":"Toronto","lhr":"London",
+  "cdg":"Paris","fra":"Frankfurt"
+};
+
+/* ═══════════════════════════════════════════════
+   CITIES
+═══════════════════════════════════════════════ */
+var CITIES = [
+  {c:"Honolulu",n:"USA",t:"Pacific/Honolulu"},
+  {c:"Hilo",n:"USA",t:"Pacific/Honolulu"},
+  {c:"Kailua",n:"USA",t:"Pacific/Honolulu"},
+  {c:"Pago Pago",n:"American Samoa",t:"Pacific/Pago_Pago"},
+  {c:"Apia",n:"Samoa",t:"Pacific/Apia"},
+  {c:"Rarotonga",n:"Cook Islands",t:"Pacific/Rarotonga"},
+  {c:"Alofi",n:"Niue",t:"Pacific/Niue"},
+  {c:"Papeete",n:"French Polynesia",t:"Pacific/Tahiti"},
+  {c:"Marquesas",n:"French Polynesia",t:"Pacific/Marquesas"},
+  {c:"Gambier",n:"French Polynesia",t:"Pacific/Gambier"},
+  {c:"Pitcairn",n:"Pitcairn",t:"Pacific/Pitcairn"},
+  {c:"Anchorage",n:"USA",t:"America/Anchorage"},
+  {c:"Fairbanks",n:"USA",t:"America/Anchorage"},
+  {c:"Juneau",n:"USA",t:"America/Juneau"},
+  {c:"Sitka",n:"USA",t:"America/Sitka"},
+  {c:"Yakutat",n:"USA",t:"America/Yakutat"},
+  {c:"Nome",n:"USA",t:"America/Nome"},
+  {c:"Adak",n:"USA",t:"America/Adak"},
+  {c:"Metlakatla",n:"USA",t:"America/Metlakatla"},
+  {c:"Seattle",n:"USA",t:"America/Los_Angeles"},
+  {c:"Portland",n:"USA",t:"America/Los_Angeles"},
+  {c:"San Francisco",n:"USA",t:"America/Los_Angeles"},
+  {c:"Los Angeles",n:"USA",t:"America/Los_Angeles"},
+  {c:"San Diego",n:"USA",t:"America/Los_Angeles"},
+  {c:"Las Vegas",n:"USA",t:"America/Los_Angeles"},
+  {c:"Sacramento",n:"USA",t:"America/Los_Angeles"},
+  {c:"San Jose",n:"USA",t:"America/Los_Angeles"},
+  {c:"Fresno",n:"USA",t:"America/Los_Angeles"},
+  {c:"Long Beach",n:"USA",t:"America/Los_Angeles"},
+  {c:"Oakland",n:"USA",t:"America/Los_Angeles"},
+  {c:"Bakersfield",n:"USA",t:"America/Los_Angeles"},
+  {c:"Anaheim",n:"USA",t:"America/Los_Angeles"},
+  {c:"Santa Ana",n:"USA",t:"America/Los_Angeles"},
+  {c:"Riverside",n:"USA",t:"America/Los_Angeles"},
+  {c:"Stockton",n:"USA",t:"America/Los_Angeles"},
+  {c:"Irvine",n:"USA",t:"America/Los_Angeles"},
+  {c:"Chula Vista",n:"USA",t:"America/Los_Angeles"},
+  {c:"Tacoma",n:"USA",t:"America/Los_Angeles"},
+  {c:"Spokane",n:"USA",t:"America/Los_Angeles"},
+  {c:"Reno",n:"USA",t:"America/Los_Angeles"},
+  {c:"Henderson",n:"USA",t:"America/Los_Angeles"},
+  {c:"Boise",n:"USA",t:"America/Boise"},
+  {c:"Phoenix",n:"USA",t:"America/Phoenix"},
+  {c:"Tucson",n:"USA",t:"America/Phoenix"},
+  {c:"Mesa",n:"USA",t:"America/Phoenix"},
+  {c:"Chandler",n:"USA",t:"America/Phoenix"},
+  {c:"Scottsdale",n:"USA",t:"America/Phoenix"},
+  {c:"Tempe",n:"USA",t:"America/Phoenix"},
+  {c:"Glendale",n:"USA",t:"America/Phoenix"},
+  {c:"Denver",n:"USA",t:"America/Denver"},
+  {c:"Colorado Springs",n:"USA",t:"America/Denver"},
+  {c:"Aurora",n:"USA",t:"America/Denver"},
+  {c:"Fort Collins",n:"USA",t:"America/Denver"},
+  {c:"Salt Lake City",n:"USA",t:"America/Denver"},
+  {c:"West Valley City",n:"USA",t:"America/Denver"},
+  {c:"Provo",n:"USA",t:"America/Denver"},
+  {c:"Albuquerque",n:"USA",t:"America/Denver"},
+  {c:"Santa Fe",n:"USA",t:"America/Denver"},
+  {c:"Billings",n:"USA",t:"America/Denver"},
+  {c:"Casper",n:"USA",t:"America/Denver"},
+  {c:"Cheyenne",n:"USA",t:"America/Denver"},
+  {c:"Chicago",n:"USA",t:"America/Chicago"},
+  {c:"Houston",n:"USA",t:"America/Chicago"},
+  {c:"San Antonio",n:"USA",t:"America/Chicago"},
+  {c:"Dallas",n:"USA",t:"America/Chicago"},
+  {c:"Austin",n:"USA",t:"America/Chicago"},
+  {c:"Fort Worth",n:"USA",t:"America/Chicago"},
+  {c:"El Paso",n:"USA",t:"America/Chicago"},
+  {c:"Minneapolis",n:"USA",t:"America/Chicago"},
+  {c:"Kansas City",n:"USA",t:"America/Chicago"},
+  {c:"Omaha",n:"USA",t:"America/Chicago"},
+  {c:"Milwaukee",n:"USA",t:"America/Chicago"},
+  {c:"Tulsa",n:"USA",t:"America/Chicago"},
+  {c:"New Orleans",n:"USA",t:"America/Chicago"},
+  {c:"Oklahoma City",n:"USA",t:"America/Chicago"},
+  {c:"Wichita",n:"USA",t:"America/Chicago"},
+  {c:"Memphis",n:"USA",t:"America/Chicago"},
+  {c:"Nashville",n:"USA",t:"America/Chicago"},
+  {c:"Louisville",n:"USA",t:"America/Chicago"},
+  {c:"Madison",n:"USA",t:"America/Chicago"},
+  {c:"Des Moines",n:"USA",t:"America/Chicago"},
+  {c:"Little Rock",n:"USA",t:"America/Chicago"},
+  {c:"Baton Rouge",n:"USA",t:"America/Chicago"},
+  {c:"St Louis",n:"USA",t:"America/Chicago"},
+  {c:"St Paul",n:"USA",t:"America/Chicago"},
+  {c:"Lincoln",n:"USA",t:"America/Chicago"},
+  {c:"Corpus Christi",n:"USA",t:"America/Chicago"},
+  {c:"Lubbock",n:"USA",t:"America/Chicago"},
+  {c:"Laredo",n:"USA",t:"America/Chicago"},
+  {c:"Shreveport",n:"USA",t:"America/Chicago"},
+  {c:"New York",n:"USA",t:"America/New_York"},
+  {c:"Philadelphia",n:"USA",t:"America/New_York"},
+  {c:"Washington DC",n:"USA",t:"America/New_York"},
+  {c:"Boston",n:"USA",t:"America/New_York"},
+  {c:"Miami",n:"USA",t:"America/New_York"},
+  {c:"Atlanta",n:"USA",t:"America/New_York"},
+  {c:"Detroit",n:"USA",t:"America/New_York"},
+  {c:"Charlotte",n:"USA",t:"America/New_York"},
+  {c:"Baltimore",n:"USA",t:"America/New_York"},
+  {c:"Tampa",n:"USA",t:"America/New_York"},
+  {c:"Orlando",n:"USA",t:"America/New_York"},
+  {c:"Cleveland",n:"USA",t:"America/New_York"},
+  {c:"Pittsburgh",n:"USA",t:"America/New_York"},
+  {c:"Raleigh",n:"USA",t:"America/New_York"},
+  {c:"Indianapolis",n:"USA",t:"America/New_York"},
+  {c:"Columbus",n:"USA",t:"America/New_York"},
+  {c:"Cincinnati",n:"USA",t:"America/New_York"},
+  {c:"Buffalo",n:"USA",t:"America/New_York"},
+  {c:"Jacksonville",n:"USA",t:"America/New_York"},
+  {c:"Virginia Beach",n:"USA",t:"America/New_York"},
+  {c:"Richmond",n:"USA",t:"America/New_York"},
+  {c:"Newark",n:"USA",t:"America/New_York"},
+  {c:"Greensboro",n:"USA",t:"America/New_York"},
+  {c:"Durham",n:"USA",t:"America/New_York"},
+  {c:"Lexington",n:"USA",t:"America/New_York"},
+  {c:"Knoxville",n:"USA",t:"America/New_York"},
+  {c:"Chattanooga",n:"USA",t:"America/New_York"},
+  {c:"Akron",n:"USA",t:"America/New_York"},
+  {c:"Toledo",n:"USA",t:"America/New_York"},
+  {c:"Fort Wayne",n:"USA",t:"America/New_York"},
+  {c:"Providence",n:"USA",t:"America/New_York"},
+  {c:"Hartford",n:"USA",t:"America/New_York"},
+  {c:"New Haven",n:"USA",t:"America/New_York"},
+  {c:"Syracuse",n:"USA",t:"America/New_York"},
+  {c:"Albany",n:"USA",t:"America/New_York"},
+  {c:"Rochester",n:"USA",t:"America/New_York"},
+  {c:"Worcester",n:"USA",t:"America/New_York"},
+  {c:"Bridgeport",n:"USA",t:"America/New_York"},
+  {c:"Savannah",n:"USA",t:"America/New_York"},
+  {c:"Columbia",n:"USA",t:"America/New_York"},
+  {c:"Augusta",n:"USA",t:"America/New_York"},
+  {c:"Montgomery",n:"USA",t:"America/New_York"},
+  {c:"Huntsville",n:"USA",t:"America/New_York"},
+  {c:"Birmingham",n:"USA",t:"America/New_York"},
+  {c:"Jackson",n:"USA",t:"America/New_York"},
+  {c:"Tallahassee",n:"USA",t:"America/New_York"},
+  {c:"Fort Lauderdale",n:"USA",t:"America/New_York"},
+  {c:"St Petersburg",n:"USA",t:"America/New_York"},
+  {c:"Vancouver",n:"Canada",t:"America/Vancouver"},
+  {c:"Victoria",n:"Canada",t:"America/Vancouver"},
+  {c:"Kelowna",n:"Canada",t:"America/Vancouver"},
+  {c:"Whitehorse",n:"Canada",t:"America/Whitehorse"},
+  {c:"Dawson City",n:"Canada",t:"America/Dawson"},
+  {c:"Calgary",n:"Canada",t:"America/Edmonton"},
+  {c:"Edmonton",n:"Canada",t:"America/Edmonton"},
+  {c:"Red Deer",n:"Canada",t:"America/Edmonton"},
+  {c:"Lethbridge",n:"Canada",t:"America/Edmonton"},
+  {c:"Yellowknife",n:"Canada",t:"America/Yellowknife"},
+  {c:"Regina",n:"Canada",t:"America/Regina"},
+  {c:"Saskatoon",n:"Canada",t:"America/Regina"},
+  {c:"Winnipeg",n:"Canada",t:"America/Winnipeg"},
+  {c:"Brandon",n:"Canada",t:"America/Winnipeg"},
+  {c:"Thunder Bay",n:"Canada",t:"America/Thunder_Bay"},
+  {c:"Toronto",n:"Canada",t:"America/Toronto"},
+  {c:"Ottawa",n:"Canada",t:"America/Toronto"},
+  {c:"Montreal",n:"Canada",t:"America/Toronto"},
+  {c:"Quebec City",n:"Canada",t:"America/Toronto"},
+  {c:"Hamilton",n:"Canada",t:"America/Toronto"},
+  {c:"London",n:"Canada",t:"America/Toronto"},
+  {c:"Windsor",n:"Canada",t:"America/Toronto"},
+  {c:"Mississauga",n:"Canada",t:"America/Toronto"},
+  {c:"Brampton",n:"Canada",t:"America/Toronto"},
+  {c:"Halifax",n:"Canada",t:"America/Halifax"},
+  {c:"Moncton",n:"Canada",t:"America/Moncton"},
+  {c:"Fredericton",n:"Canada",t:"America/Moncton"},
+  {c:"Saint John",n:"Canada",t:"America/Moncton"},
+  {c:"Charlottetown",n:"Canada",t:"America/Halifax"},
+  {c:"St Johns",n:"Canada",t:"America/St_Johns"},
+  {c:"Tijuana",n:"Mexico",t:"America/Tijuana"},
+  {c:"Mexicali",n:"Mexico",t:"America/Tijuana"},
+  {c:"Ensenada",n:"Mexico",t:"America/Tijuana"},
+  {c:"Hermosillo",n:"Mexico",t:"America/Hermosillo"},
+  {c:"Culiacan",n:"Mexico",t:"America/Mazatlan"},
+  {c:"Mazatlan",n:"Mexico",t:"America/Mazatlan"},
+  {c:"Los Mochis",n:"Mexico",t:"America/Mazatlan"},
+  {c:"Chihuahua",n:"Mexico",t:"America/Chihuahua"},
+  {c:"Ciudad Juarez",n:"Mexico",t:"America/Ojinaga"},
+  {c:"Monterrey",n:"Mexico",t:"America/Monterrey"},
+  {c:"Saltillo",n:"Mexico",t:"America/Monterrey"},
+  {c:"Reynosa",n:"Mexico",t:"America/Matamoros"},
+  {c:"Matamoros",n:"Mexico",t:"America/Matamoros"},
+  {c:"Nuevo Laredo",n:"Mexico",t:"America/Matamoros"},
+  {c:"Mexico City",n:"Mexico",t:"America/Mexico_City"},
+  {c:"Guadalajara",n:"Mexico",t:"America/Mexico_City"},
+  {c:"Puebla",n:"Mexico",t:"America/Mexico_City"},
+  {c:"Toluca",n:"Mexico",t:"America/Mexico_City"},
+  {c:"Queretaro",n:"Mexico",t:"America/Mexico_City"},
+  {c:"Leon",n:"Mexico",t:"America/Mexico_City"},
+  {c:"San Luis Potosi",n:"Mexico",t:"America/Mexico_City"},
+  {c:"Aguascalientes",n:"Mexico",t:"America/Mexico_City"},
+  {c:"Morelia",n:"Mexico",t:"America/Mexico_City"},
+  {c:"Oaxaca",n:"Mexico",t:"America/Mexico_City"},
+  {c:"Acapulco",n:"Mexico",t:"America/Mexico_City"},
+  {c:"Veracruz",n:"Mexico",t:"America/Mexico_City"},
+  {c:"Merida",n:"Mexico",t:"America/Merida"},
+  {c:"Cancun",n:"Mexico",t:"America/Cancun"},
+  {c:"Playa del Carmen",n:"Mexico",t:"America/Cancun"},
+  {c:"Guatemala City",n:"Guatemala",t:"America/Guatemala"},
+  {c:"Quetzaltenango",n:"Guatemala",t:"America/Guatemala"},
+  {c:"San Salvador",n:"El Salvador",t:"America/El_Salvador"},
+  {c:"Tegucigalpa",n:"Honduras",t:"America/Tegucigalpa"},
+  {c:"San Pedro Sula",n:"Honduras",t:"America/Tegucigalpa"},
+  {c:"Managua",n:"Nicaragua",t:"America/Managua"},
+  {c:"San Jose",n:"Costa Rica",t:"America/Costa_Rica"},
+  {c:"Panama City",n:"Panama",t:"America/Panama"},
+  {c:"Belize City",n:"Belize",t:"America/Belize"},
+  {c:"Havana",n:"Cuba",t:"America/Havana"},
+  {c:"Santiago de Cuba",n:"Cuba",t:"America/Havana"},
+  {c:"Kingston",n:"Jamaica",t:"America/Jamaica"},
+  {c:"Montego Bay",n:"Jamaica",t:"America/Jamaica"},
+  {c:"Port-au-Prince",n:"Haiti",t:"America/Port-au-Prince"},
+  {c:"Cap-Haitien",n:"Haiti",t:"America/Port-au-Prince"},
+  {c:"Santo Domingo",n:"Dominican Rep.",t:"America/Santo_Domingo"},
+  {c:"Santiago",n:"Dominican Rep.",t:"America/Santo_Domingo"},
+  {c:"San Juan",n:"Puerto Rico",t:"America/Puerto_Rico"},
+  {c:"Nassau",n:"Bahamas",t:"America/Nassau"},
+  {c:"Hamilton",n:"Bermuda",t:"Atlantic/Bermuda"},
+  {c:"Bridgetown",n:"Barbados",t:"America/Barbados"},
+  {c:"Port of Spain",n:"Trinidad",t:"America/Port_of_Spain"},
+  {c:"Georgetown",n:"Guyana",t:"America/Guyana"},
+  {c:"Paramaribo",n:"Suriname",t:"America/Paramaribo"},
+  {c:"Cayenne",n:"French Guiana",t:"America/Cayenne"},
+  {c:"Willemstad",n:"Curacao",t:"America/Curacao"},
+  {c:"Oranjestad",n:"Aruba",t:"America/Aruba"},
+  {c:"Philipsburg",n:"Sint Maarten",t:"America/Lower_Princes"},
+  {c:"Gustavia",n:"St Barthelemy",t:"America/St_Barthelemy"},
+  {c:"Kingstown",n:"St Vincent",t:"America/St_Vincent"},
+  {c:"Castries",n:"St Lucia",t:"America/St_Lucia"},
+  {c:"Roseau",n:"Dominica",t:"America/Dominica"},
+  {c:"Saint Georges",n:"Grenada",t:"America/Grenada"},
+  {c:"Basseterre",n:"St Kitts",t:"America/St_Kitts"},
+  {c:"St Johns",n:"Antigua",t:"America/Antigua"},
+  {c:"Brades",n:"Montserrat",t:"America/Montserrat"},
+  {c:"Road Town",n:"British Virgin Is.",t:"America/Tortola"},
+  {c:"Charlotte Amalie",n:"US Virgin Is.",t:"America/St_Thomas"},
+  {c:"Pointe-a-Pitre",n:"Guadeloupe",t:"America/Guadeloupe"},
+  {c:"Fort-de-France",n:"Martinique",t:"America/Martinique"},
+  {c:"Marigot",n:"St Martin",t:"America/Marigot"},
+  {c:"The Valley",n:"Anguilla",t:"America/Anguilla"},
+  {c:"Caracas",n:"Venezuela",t:"America/Caracas"},
+  {c:"Maracaibo",n:"Venezuela",t:"America/Caracas"},
+  {c:"Valencia",n:"Venezuela",t:"America/Caracas"},
+  {c:"Bogota",n:"Colombia",t:"America/Bogota"},
+  {c:"Medellin",n:"Colombia",t:"America/Bogota"},
+  {c:"Cali",n:"Colombia",t:"America/Bogota"},
+  {c:"Barranquilla",n:"Colombia",t:"America/Bogota"},
+  {c:"Cartagena",n:"Colombia",t:"America/Bogota"},
+  {c:"Quito",n:"Ecuador",t:"America/Guayaquil"},
+  {c:"Guayaquil",n:"Ecuador",t:"America/Guayaquil"},
+  {c:"Cuenca",n:"Ecuador",t:"America/Guayaquil"},
+  {c:"Lima",n:"Peru",t:"America/Lima"},
+  {c:"Arequipa",n:"Peru",t:"America/Lima"},
+  {c:"Trujillo",n:"Peru",t:"America/Lima"},
+  {c:"Cusco",n:"Peru",t:"America/Lima"},
+  {c:"La Paz",n:"Bolivia",t:"America/La_Paz"},
+  {c:"Santa Cruz",n:"Bolivia",t:"America/La_Paz"},
+  {c:"Cochabamba",n:"Bolivia",t:"America/La_Paz"},
+  {c:"Santiago",n:"Chile",t:"America/Santiago"},
+  {c:"Valparaiso",n:"Chile",t:"America/Santiago"},
+  {c:"Concepcion",n:"Chile",t:"America/Santiago"},
+  {c:"Antofagasta",n:"Chile",t:"America/Santiago"},
+  {c:"Easter Island",n:"Chile",t:"Pacific/Easter"},
+  {c:"Asuncion",n:"Paraguay",t:"America/Asuncion"},
+  {c:"Ciudad del Este",n:"Paraguay",t:"America/Asuncion"},
+  {c:"Buenos Aires",n:"Argentina",t:"America/Argentina/Buenos_Aires"},
+  {c:"Cordoba",n:"Argentina",t:"America/Argentina/Cordoba"},
+  {c:"Rosario",n:"Argentina",t:"America/Argentina/Cordoba"},
+  {c:"Mendoza",n:"Argentina",t:"America/Argentina/Mendoza"},
+  {c:"Tucuman",n:"Argentina",t:"America/Argentina/Tucuman"},
+  {c:"Salta",n:"Argentina",t:"America/Argentina/Salta"},
+  {c:"Mar del Plata",n:"Argentina",t:"America/Argentina/Buenos_Aires"},
+  {c:"Bariloche",n:"Argentina",t:"America/Argentina/Salta"},
+  {c:"Ushuaia",n:"Argentina",t:"America/Argentina/Ushuaia"},
+  {c:"Montevideo",n:"Uruguay",t:"America/Montevideo"},
+  {c:"Salto",n:"Uruguay",t:"America/Montevideo"},
+  {c:"Sao Paulo",n:"Brazil",t:"America/Sao_Paulo"},
+  {c:"Rio de Janeiro",n:"Brazil",t:"America/Sao_Paulo"},
+  {c:"Brasilia",n:"Brazil",t:"America/Sao_Paulo"},
+  {c:"Belo Horizonte",n:"Brazil",t:"America/Sao_Paulo"},
+  {c:"Porto Alegre",n:"Brazil",t:"America/Sao_Paulo"},
+  {c:"Curitiba",n:"Brazil",t:"America/Sao_Paulo"},
+  {c:"Florianopolis",n:"Brazil",t:"America/Sao_Paulo"},
+  {c:"Campinas",n:"Brazil",t:"America/Sao_Paulo"},
+  {c:"Santos",n:"Brazil",t:"America/Sao_Paulo"},
+  {c:"Goiania",n:"Brazil",t:"America/Sao_Paulo"},
+  {c:"Salvador",n:"Brazil",t:"America/Bahia"},
+  {c:"Recife",n:"Brazil",t:"America/Recife"},
+  {c:"Fortaleza",n:"Brazil",t:"America/Fortaleza"},
+  {c:"Natal",n:"Brazil",t:"America/Fortaleza"},
+  {c:"Joao Pessoa",n:"Brazil",t:"America/Recife"},
+  {c:"Maceio",n:"Brazil",t:"America/Maceio"},
+  {c:"Teresina",n:"Brazil",t:"America/Fortaleza"},
+  {c:"Sao Luis",n:"Brazil",t:"America/Fortaleza"},
+  {c:"Belem",n:"Brazil",t:"America/Belem"},
+  {c:"Macapa",n:"Brazil",t:"America/Belem"},
+  {c:"Santarem",n:"Brazil",t:"America/Santarem"},
+  {c:"Manaus",n:"Brazil",t:"America/Manaus"},
+  {c:"Porto Velho",n:"Brazil",t:"America/Porto_Velho"},
+  {c:"Rio Branco",n:"Brazil",t:"America/Rio_Branco"},
+  {c:"Boa Vista",n:"Brazil",t:"America/Boa_Vista"},
+  {c:"Campo Grande",n:"Brazil",t:"America/Campo_Grande"},
+  {c:"Cuiaba",n:"Brazil",t:"America/Cuiaba"},
+  {c:"Noronha",n:"Brazil",t:"America/Noronha"},
+  {c:"Falkland Islands",n:"UK",t:"Atlantic/Stanley"},
+  {c:"Nuuk",n:"Greenland",t:"America/Godthab"},
+  {c:"Danmarkshavn",n:"Greenland",t:"America/Danmarkshavn"},
+  {c:"Scoresbysund",n:"Greenland",t:"America/Scoresbysund"},
+  {c:"Thule",n:"Greenland",t:"America/Thule"},
+  {c:"Reykjavik",n:"Iceland",t:"Atlantic/Reykjavik"},
+  {c:"Akureyri",n:"Iceland",t:"Atlantic/Reykjavik"},
+  {c:"Torshavn",n:"Faroe Islands",t:"Atlantic/Faroe"},
+  {c:"Ponta Delgada",n:"Azores",t:"Atlantic/Azores"},
+  {c:"Funchal",n:"Madeira",t:"Atlantic/Madeira"},
+  {c:"Las Palmas",n:"Canary Islands",t:"Atlantic/Canary"},
+  {c:"Santa Cruz de Tenerife",n:"Canary Islands",t:"Atlantic/Canary"},
+  {c:"London",n:"UK",t:"Europe/London"},
+  {c:"Birmingham",n:"UK",t:"Europe/London"},
+  {c:"Manchester",n:"UK",t:"Europe/London"},
+  {c:"Glasgow",n:"UK",t:"Europe/London"},
+  {c:"Edinburgh",n:"UK",t:"Europe/London"},
+  {c:"Liverpool",n:"UK",t:"Europe/London"},
+  {c:"Leeds",n:"UK",t:"Europe/London"},
+  {c:"Sheffield",n:"UK",t:"Europe/London"},
+  {c:"Bristol",n:"UK",t:"Europe/London"},
+  {c:"Newcastle",n:"UK",t:"Europe/London"},
+  {c:"Nottingham",n:"UK",t:"Europe/London"},
+  {c:"Cardiff",n:"UK",t:"Europe/London"},
+  {c:"Belfast",n:"UK",t:"Europe/London"},
+  {c:"Aberdeen",n:"UK",t:"Europe/London"},
+  {c:"Leicester",n:"UK",t:"Europe/London"},
+  {c:"Coventry",n:"UK",t:"Europe/London"},
+  {c:"Bradford",n:"UK",t:"Europe/London"},
+  {c:"Dublin",n:"Ireland",t:"Europe/Dublin"},
+  {c:"Cork",n:"Ireland",t:"Europe/Dublin"},
+  {c:"Limerick",n:"Ireland",t:"Europe/Dublin"},
+  {c:"Galway",n:"Ireland",t:"Europe/Dublin"},
+  {c:"Lisbon",n:"Portugal",t:"Europe/Lisbon"},
+  {c:"Porto",n:"Portugal",t:"Europe/Lisbon"},
+  {c:"Braga",n:"Portugal",t:"Europe/Lisbon"},
+  {c:"Coimbra",n:"Portugal",t:"Europe/Lisbon"},
+  {c:"Faro",n:"Portugal",t:"Europe/Lisbon"},
+  {c:"Madrid",n:"Spain",t:"Europe/Madrid"},
+  {c:"Barcelona",n:"Spain",t:"Europe/Madrid"},
+  {c:"Valencia",n:"Spain",t:"Europe/Madrid"},
+  {c:"Seville",n:"Spain",t:"Europe/Madrid"},
+  {c:"Zaragoza",n:"Spain",t:"Europe/Madrid"},
+  {c:"Malaga",n:"Spain",t:"Europe/Madrid"},
+  {c:"Murcia",n:"Spain",t:"Europe/Madrid"},
+  {c:"Palma",n:"Spain",t:"Europe/Madrid"},
+  {c:"Bilbao",n:"Spain",t:"Europe/Madrid"},
+  {c:"Alicante",n:"Spain",t:"Europe/Madrid"},
+  {c:"Valladolid",n:"Spain",t:"Europe/Madrid"},
+  {c:"Cordoba",n:"Spain",t:"Europe/Madrid"},
+  {c:"Granada",n:"Spain",t:"Europe/Madrid"},
+  {c:"Cadiz",n:"Spain",t:"Europe/Madrid"},
+  {c:"Gijon",n:"Spain",t:"Europe/Madrid"},
+  {c:"Santiago de Compostela",n:"Spain",t:"Europe/Madrid"},
+  {c:"Paris",n:"France",t:"Europe/Paris"},
+  {c:"Lyon",n:"France",t:"Europe/Paris"},
+  {c:"Marseille",n:"France",t:"Europe/Paris"},
+  {c:"Nice",n:"France",t:"Europe/Paris"},
+  {c:"Toulouse",n:"France",t:"Europe/Paris"},
+  {c:"Bordeaux",n:"France",t:"Europe/Paris"},
+  {c:"Nantes",n:"France",t:"Europe/Paris"},
+  {c:"Strasbourg",n:"France",t:"Europe/Paris"},
+  {c:"Montpellier",n:"France",t:"Europe/Paris"},
+  {c:"Lille",n:"France",t:"Europe/Paris"},
+  {c:"Rennes",n:"France",t:"Europe/Paris"},
+  {c:"Reims",n:"France",t:"Europe/Paris"},
+  {c:"Grenoble",n:"France",t:"Europe/Paris"},
+  {c:"Toulon",n:"France",t:"Europe/Paris"},
+  {c:"Dijon",n:"France",t:"Europe/Paris"},
+  {c:"Angers",n:"France",t:"Europe/Paris"},
+  {c:"Saint-Etienne",n:"France",t:"Europe/Paris"},
+  {c:"Clermont-Ferrand",n:"France",t:"Europe/Paris"},
+  {c:"Amsterdam",n:"Netherlands",t:"Europe/Amsterdam"},
+  {c:"Rotterdam",n:"Netherlands",t:"Europe/Amsterdam"},
+  {c:"The Hague",n:"Netherlands",t:"Europe/Amsterdam"},
+  {c:"Utrecht",n:"Netherlands",t:"Europe/Amsterdam"},
+  {c:"Eindhoven",n:"Netherlands",t:"Europe/Amsterdam"},
+  {c:"Brussels",n:"Belgium",t:"Europe/Brussels"},
+  {c:"Antwerp",n:"Belgium",t:"Europe/Brussels"},
+  {c:"Ghent",n:"Belgium",t:"Europe/Brussels"},
+  {c:"Bruges",n:"Belgium",t:"Europe/Brussels"},
+  {c:"Liege",n:"Belgium",t:"Europe/Brussels"},
+  {c:"Luxembourg City",n:"Luxembourg",t:"Europe/Luxembourg"},
+  {c:"Berlin",n:"Germany",t:"Europe/Berlin"},
+  {c:"Hamburg",n:"Germany",t:"Europe/Berlin"},
+  {c:"Munich",n:"Germany",t:"Europe/Berlin"},
+  {c:"Cologne",n:"Germany",t:"Europe/Berlin"},
+  {c:"Frankfurt",n:"Germany",t:"Europe/Berlin"},
+  {c:"Stuttgart",n:"Germany",t:"Europe/Berlin"},
+  {c:"Dusseldorf",n:"Germany",t:"Europe/Berlin"},
+  {c:"Dortmund",n:"Germany",t:"Europe/Berlin"},
+  {c:"Essen",n:"Germany",t:"Europe/Berlin"},
+  {c:"Leipzig",n:"Germany",t:"Europe/Berlin"},
+  {c:"Bremen",n:"Germany",t:"Europe/Berlin"},
+  {c:"Dresden",n:"Germany",t:"Europe/Berlin"},
+  {c:"Hannover",n:"Germany",t:"Europe/Berlin"},
+  {c:"Nuremberg",n:"Germany",t:"Europe/Berlin"},
+  {c:"Duisburg",n:"Germany",t:"Europe/Berlin"},
+  {c:"Bochum",n:"Germany",t:"Europe/Berlin"},
+  {c:"Wuppertal",n:"Germany",t:"Europe/Berlin"},
+  {c:"Bielefeld",n:"Germany",t:"Europe/Berlin"},
+  {c:"Bonn",n:"Germany",t:"Europe/Berlin"},
+  {c:"Mannheim",n:"Germany",t:"Europe/Berlin"},
+  {c:"Karlsruhe",n:"Germany",t:"Europe/Berlin"},
+  {c:"Augsburg",n:"Germany",t:"Europe/Berlin"},
+  {c:"Wiesbaden",n:"Germany",t:"Europe/Berlin"},
+  {c:"Munster",n:"Germany",t:"Europe/Berlin"},
+  {c:"Gelsenkirchen",n:"Germany",t:"Europe/Berlin"},
+  {c:"Freiburg",n:"Germany",t:"Europe/Berlin"},
+  {c:"Aachen",n:"Germany",t:"Europe/Berlin"},
+  {c:"Kiel",n:"Germany",t:"Europe/Berlin"},
+  {c:"Erfurt",n:"Germany",t:"Europe/Berlin"},
+  {c:"Rostock",n:"Germany",t:"Europe/Berlin"},
+  {c:"Zurich",n:"Switzerland",t:"Europe/Zurich"},
+  {c:"Geneva",n:"Switzerland",t:"Europe/Zurich"},
+  {c:"Basel",n:"Switzerland",t:"Europe/Zurich"},
+  {c:"Bern",n:"Switzerland",t:"Europe/Zurich"},
+  {c:"Lausanne",n:"Switzerland",t:"Europe/Zurich"},
+  {c:"Lucerne",n:"Switzerland",t:"Europe/Zurich"},
+  {c:"Vienna",n:"Austria",t:"Europe/Vienna"},
+  {c:"Graz",n:"Austria",t:"Europe/Vienna"},
+  {c:"Linz",n:"Austria",t:"Europe/Vienna"},
+  {c:"Salzburg",n:"Austria",t:"Europe/Vienna"},
+  {c:"Innsbruck",n:"Austria",t:"Europe/Vienna"},
+  {c:"Rome",n:"Italy",t:"Europe/Rome"},
+  {c:"Milan",n:"Italy",t:"Europe/Rome"},
+  {c:"Naples",n:"Italy",t:"Europe/Rome"},
+  {c:"Turin",n:"Italy",t:"Europe/Rome"},
+  {c:"Palermo",n:"Italy",t:"Europe/Rome"},
+  {c:"Genoa",n:"Italy",t:"Europe/Rome"},
+  {c:"Bologna",n:"Italy",t:"Europe/Rome"},
+  {c:"Florence",n:"Italy",t:"Europe/Rome"},
+  {c:"Venice",n:"Italy",t:"Europe/Rome"},
+  {c:"Bari",n:"Italy",t:"Europe/Rome"},
+  {c:"Catania",n:"Italy",t:"Europe/Rome"},
+  {c:"Verona",n:"Italy",t:"Europe/Rome"},
+  {c:"Messina",n:"Italy",t:"Europe/Rome"},
+  {c:"Padua",n:"Italy",t:"Europe/Rome"},
+  {c:"Trieste",n:"Italy",t:"Europe/Rome"},
+  {c:"Brescia",n:"Italy",t:"Europe/Rome"},
+  {c:"Taranto",n:"Italy",t:"Europe/Rome"},
+  {c:"Prato",n:"Italy",t:"Europe/Rome"},
+  {c:"Reggio Calabria",n:"Italy",t:"Europe/Rome"},
+  {c:"Stockholm",n:"Sweden",t:"Europe/Stockholm"},
+  {c:"Gothenburg",n:"Sweden",t:"Europe/Stockholm"},
+  {c:"Malmo",n:"Sweden",t:"Europe/Stockholm"},
+  {c:"Uppsala",n:"Sweden",t:"Europe/Stockholm"},
+  {c:"Vasteras",n:"Sweden",t:"Europe/Stockholm"},
+  {c:"Orebro",n:"Sweden",t:"Europe/Stockholm"},
+  {c:"Linkoping",n:"Sweden",t:"Europe/Stockholm"},
+  {c:"Oslo",n:"Norway",t:"Europe/Oslo"},
+  {c:"Bergen",n:"Norway",t:"Europe/Oslo"},
+  {c:"Trondheim",n:"Norway",t:"Europe/Oslo"},
+  {c:"Stavanger",n:"Norway",t:"Europe/Oslo"},
+  {c:"Tromsø",n:"Norway",t:"Europe/Oslo"},
+  {c:"Copenhagen",n:"Denmark",t:"Europe/Copenhagen"},
+  {c:"Aarhus",n:"Denmark",t:"Europe/Copenhagen"},
+  {c:"Odense",n:"Denmark",t:"Europe/Copenhagen"},
+  {c:"Aalborg",n:"Denmark",t:"Europe/Copenhagen"},
+  {c:"Helsinki",n:"Finland",t:"Europe/Helsinki"},
+  {c:"Espoo",n:"Finland",t:"Europe/Helsinki"},
+  {c:"Tampere",n:"Finland",t:"Europe/Helsinki"},
+  {c:"Turku",n:"Finland",t:"Europe/Helsinki"},
+  {c:"Oulu",n:"Finland",t:"Europe/Helsinki"},
+  {c:"Rovaniemi",n:"Finland",t:"Europe/Helsinki"},
+  {c:"Tallinn",n:"Estonia",t:"Europe/Tallinn"},
+  {c:"Tartu",n:"Estonia",t:"Europe/Tallinn"},
+  {c:"Riga",n:"Latvia",t:"Europe/Riga"},
+  {c:"Daugavpils",n:"Latvia",t:"Europe/Riga"},
+  {c:"Vilnius",n:"Lithuania",t:"Europe/Vilnius"},
+  {c:"Kaunas",n:"Lithuania",t:"Europe/Vilnius"},
+  {c:"Klaipeda",n:"Lithuania",t:"Europe/Vilnius"},
+  {c:"Warsaw",n:"Poland",t:"Europe/Warsaw"},
+  {c:"Krakow",n:"Poland",t:"Europe/Warsaw"},
+  {c:"Lodz",n:"Poland",t:"Europe/Warsaw"},
+  {c:"Wroclaw",n:"Poland",t:"Europe/Warsaw"},
+  {c:"Poznan",n:"Poland",t:"Europe/Warsaw"},
+  {c:"Gdansk",n:"Poland",t:"Europe/Warsaw"},
+  {c:"Szczecin",n:"Poland",t:"Europe/Warsaw"},
+  {c:"Bydgoszcz",n:"Poland",t:"Europe/Warsaw"},
+  {c:"Lublin",n:"Poland",t:"Europe/Warsaw"},
+  {c:"Katowice",n:"Poland",t:"Europe/Warsaw"},
+  {c:"Prague",n:"Czech Rep.",t:"Europe/Prague"},
+  {c:"Brno",n:"Czech Rep.",t:"Europe/Prague"},
+  {c:"Ostrava",n:"Czech Rep.",t:"Europe/Prague"},
+  {c:"Pilsen",n:"Czech Rep.",t:"Europe/Prague"},
+  {c:"Bratislava",n:"Slovakia",t:"Europe/Bratislava"},
+  {c:"Kosice",n:"Slovakia",t:"Europe/Bratislava"},
+  {c:"Budapest",n:"Hungary",t:"Europe/Budapest"},
+  {c:"Debrecen",n:"Hungary",t:"Europe/Budapest"},
+  {c:"Miskolc",n:"Hungary",t:"Europe/Budapest"},
+  {c:"Ljubljana",n:"Slovenia",t:"Europe/Ljubljana"},
+  {c:"Maribor",n:"Slovenia",t:"Europe/Ljubljana"},
+  {c:"Zagreb",n:"Croatia",t:"Europe/Zagreb"},
+  {c:"Split",n:"Croatia",t:"Europe/Zagreb"},
+  {c:"Rijeka",n:"Croatia",t:"Europe/Zagreb"},
+  {c:"Dubrovnik",n:"Croatia",t:"Europe/Zagreb"},
+  {c:"Sarajevo",n:"Bosnia",t:"Europe/Sarajevo"},
+  {c:"Banja Luka",n:"Bosnia",t:"Europe/Sarajevo"},
+  {c:"Belgrade",n:"Serbia",t:"Europe/Belgrade"},
+  {c:"Novi Sad",n:"Serbia",t:"Europe/Belgrade"},
+  {c:"Nis",n:"Serbia",t:"Europe/Belgrade"},
+  {c:"Podgorica",n:"Montenegro",t:"Europe/Podgorica"},
+  {c:"Pristina",n:"Kosovo",t:"Europe/Belgrade"},
+  {c:"Skopje",n:"N. Macedonia",t:"Europe/Skopje"},
+  {c:"Tirana",n:"Albania",t:"Europe/Tirane"},
+  {c:"Bucharest",n:"Romania",t:"Europe/Bucharest"},
+  {c:"Cluj-Napoca",n:"Romania",t:"Europe/Bucharest"},
+  {c:"Timisoara",n:"Romania",t:"Europe/Bucharest"},
+  {c:"Iasi",n:"Romania",t:"Europe/Bucharest"},
+  {c:"Constanta",n:"Romania",t:"Europe/Bucharest"},
+  {c:"Sofia",n:"Bulgaria",t:"Europe/Sofia"},
+  {c:"Plovdiv",n:"Bulgaria",t:"Europe/Sofia"},
+  {c:"Varna",n:"Bulgaria",t:"Europe/Sofia"},
+  {c:"Athens",n:"Greece",t:"Europe/Athens"},
+  {c:"Thessaloniki",n:"Greece",t:"Europe/Athens"},
+  {c:"Patras",n:"Greece",t:"Europe/Athens"},
+  {c:"Heraklion",n:"Greece",t:"Europe/Athens"},
+  {c:"Nicosia",n:"Cyprus",t:"Asia/Nicosia"},
+  {c:"Limassol",n:"Cyprus",t:"Asia/Nicosia"},
+  {c:"Valletta",n:"Malta",t:"Europe/Malta"},
+  {c:"Kyiv",n:"Ukraine",t:"Europe/Kiev"},
+  {c:"Kharkiv",n:"Ukraine",t:"Europe/Kiev"},
+  {c:"Odessa",n:"Ukraine",t:"Europe/Kiev"},
+  {c:"Dnipro",n:"Ukraine",t:"Europe/Kiev"},
+  {c:"Lviv",n:"Ukraine",t:"Europe/Kiev"},
+  {c:"Zaporizhzhia",n:"Ukraine",t:"Europe/Kiev"},
+  {c:"Kryvyi Rih",n:"Ukraine",t:"Europe/Kiev"},
+  {c:"Mariupol",n:"Ukraine",t:"Europe/Kiev"},
+  {c:"Minsk",n:"Belarus",t:"Europe/Minsk"},
+  {c:"Gomel",n:"Belarus",t:"Europe/Minsk"},
+  {c:"Mogilev",n:"Belarus",t:"Europe/Minsk"},
+  {c:"Chisinau",n:"Moldova",t:"Europe/Chisinau"},
+  {c:"Kaliningrad",n:"Russia",t:"Europe/Kaliningrad"},
+  {c:"Moscow",n:"Russia",t:"Europe/Moscow"},
+  {c:"St Petersburg",n:"Russia",t:"Europe/Moscow"},
+  {c:"Nizhny Novgorod",n:"Russia",t:"Europe/Moscow"},
+  {c:"Kazan",n:"Russia",t:"Europe/Moscow"},
+  {c:"Samara",n:"Russia",t:"Europe/Samara"},
+  {c:"Ufa",n:"Russia",t:"Europe/Samara"},
+  {c:"Volgograd",n:"Russia",t:"Europe/Volgograd"},
+  {c:"Rostov-on-Don",n:"Russia",t:"Europe/Moscow"},
+  {c:"Voronezh",n:"Russia",t:"Europe/Moscow"},
+  {c:"Krasnodar",n:"Russia",t:"Europe/Moscow"},
+  {c:"Saratov",n:"Russia",t:"Europe/Saratov"},
+  {c:"Yekaterinburg",n:"Russia",t:"Asia/Yekaterinburg"},
+  {c:"Chelyabinsk",n:"Russia",t:"Asia/Yekaterinburg"},
+  {c:"Perm",n:"Russia",t:"Asia/Yekaterinburg"},
+  {c:"Tyumen",n:"Russia",t:"Asia/Yekaterinburg"},
+  {c:"Omsk",n:"Russia",t:"Asia/Omsk"},
+  {c:"Novosibirsk",n:"Russia",t:"Asia/Novosibirsk"},
+  {c:"Tomsk",n:"Russia",t:"Asia/Tomsk"},
+  {c:"Barnaul",n:"Russia",t:"Asia/Barnaul"},
+  {c:"Novokuznetsk",n:"Russia",t:"Asia/Novokuznetsk"},
+  {c:"Krasnoyarsk",n:"Russia",t:"Asia/Krasnoyarsk"},
+  {c:"Irkutsk",n:"Russia",t:"Asia/Irkutsk"},
+  {c:"Ulan-Ude",n:"Russia",t:"Asia/Irkutsk"},
+  {c:"Chita",n:"Russia",t:"Asia/Chita"},
+  {c:"Yakutsk",n:"Russia",t:"Asia/Yakutsk"},
+  {c:"Vladivostok",n:"Russia",t:"Asia/Vladivostok"},
+  {c:"Khabarovsk",n:"Russia",t:"Asia/Vladivostok"},
+  {c:"Magadan",n:"Russia",t:"Asia/Magadan"},
+  {c:"Sakhalin",n:"Russia",t:"Asia/Sakhalin"},
+  {c:"Srednekolymsk",n:"Russia",t:"Asia/Srednekolymsk"},
+  {c:"Anadyr",n:"Russia",t:"Asia/Anadyr"},
+  {c:"Petropavlovsk",n:"Russia",t:"Asia/Kamchatka"},
+  {c:"Istanbul",n:"Turkey",t:"Europe/Istanbul"},
+  {c:"Ankara",n:"Turkey",t:"Europe/Istanbul"},
+  {c:"Izmir",n:"Turkey",t:"Europe/Istanbul"},
+  {c:"Bursa",n:"Turkey",t:"Europe/Istanbul"},
+  {c:"Adana",n:"Turkey",t:"Europe/Istanbul"},
+  {c:"Gaziantep",n:"Turkey",t:"Europe/Istanbul"},
+  {c:"Antalya",n:"Turkey",t:"Europe/Istanbul"},
+  {c:"Konya",n:"Turkey",t:"Europe/Istanbul"},
+  {c:"Kayseri",n:"Turkey",t:"Europe/Istanbul"},
+  {c:"Mersin",n:"Turkey",t:"Europe/Istanbul"},
+  {c:"Diyarbakir",n:"Turkey",t:"Europe/Istanbul"},
+  {c:"Tbilisi",n:"Georgia",t:"Asia/Tbilisi"},
+  {c:"Kutaisi",n:"Georgia",t:"Asia/Tbilisi"},
+  {c:"Batumi",n:"Georgia",t:"Asia/Tbilisi"},
+  {c:"Yerevan",n:"Armenia",t:"Asia/Yerevan"},
+  {c:"Gyumri",n:"Armenia",t:"Asia/Yerevan"},
+  {c:"Baku",n:"Azerbaijan",t:"Asia/Baku"},
+  {c:"Ganja",n:"Azerbaijan",t:"Asia/Baku"},
+  {c:"Sumqayit",n:"Azerbaijan",t:"Asia/Baku"},
+  {c:"Beirut",n:"Lebanon",t:"Asia/Beirut"},
+  {c:"Tripoli",n:"Lebanon",t:"Asia/Beirut"},
+  {c:"Damascus",n:"Syria",t:"Asia/Damascus"},
+  {c:"Aleppo",n:"Syria",t:"Asia/Damascus"},
+  {c:"Homs",n:"Syria",t:"Asia/Damascus"},
+  {c:"Amman",n:"Jordan",t:"Asia/Amman"},
+  {c:"Zarqa",n:"Jordan",t:"Asia/Amman"},
+  {c:"Irbid",n:"Jordan",t:"Asia/Amman"},
+  {c:"Jerusalem",n:"Israel",t:"Asia/Jerusalem"},
+  {c:"Tel Aviv",n:"Israel",t:"Asia/Jerusalem"},
+  {c:"Haifa",n:"Israel",t:"Asia/Jerusalem"},
+  {c:"Beersheba",n:"Israel",t:"Asia/Jerusalem"},
+  {c:"Baghdad",n:"Iraq",t:"Asia/Baghdad"},
+  {c:"Basra",n:"Iraq",t:"Asia/Baghdad"},
+  {c:"Mosul",n:"Iraq",t:"Asia/Baghdad"},
+  {c:"Erbil",n:"Iraq",t:"Asia/Baghdad"},
+  {c:"Sulaymaniyah",n:"Iraq",t:"Asia/Baghdad"},
+  {c:"Tehran",n:"Iran",t:"Asia/Tehran"},
+  {c:"Mashhad",n:"Iran",t:"Asia/Tehran"},
+  {c:"Isfahan",n:"Iran",t:"Asia/Tehran"},
+  {c:"Tabriz",n:"Iran",t:"Asia/Tehran"},
+  {c:"Shiraz",n:"Iran",t:"Asia/Tehran"},
+  {c:"Ahvaz",n:"Iran",t:"Asia/Tehran"},
+  {c:"Karaj",n:"Iran",t:"Asia/Tehran"},
+  {c:"Qom",n:"Iran",t:"Asia/Tehran"},
+  {c:"Kuwait City",n:"Kuwait",t:"Asia/Kuwait"},
+  {c:"Hawalli",n:"Kuwait",t:"Asia/Kuwait"},
+  {c:"Manama",n:"Bahrain",t:"Asia/Bahrain"},
+  {c:"Doha",n:"Qatar",t:"Asia/Qatar"},
+  {c:"Al Wakrah",n:"Qatar",t:"Asia/Qatar"},
+  {c:"Dubai",n:"UAE",t:"Asia/Dubai"},
+  {c:"Abu Dhabi",n:"UAE",t:"Asia/Dubai"},
+  {c:"Sharjah",n:"UAE",t:"Asia/Dubai"},
+  {c:"Ajman",n:"UAE",t:"Asia/Dubai"},
+  {c:"Ras al-Khaimah",n:"UAE",t:"Asia/Dubai"},
+  {c:"Muscat",n:"Oman",t:"Asia/Muscat"},
+  {c:"Salalah",n:"Oman",t:"Asia/Muscat"},
+  {c:"Sohar",n:"Oman",t:"Asia/Muscat"},
+  {c:"Riyadh",n:"Saudi Arabia",t:"Asia/Riyadh"},
+  {c:"Jeddah",n:"Saudi Arabia",t:"Asia/Riyadh"},
+  {c:"Mecca",n:"Saudi Arabia",t:"Asia/Riyadh"},
+  {c:"Medina",n:"Saudi Arabia",t:"Asia/Riyadh"},
+  {c:"Dammam",n:"Saudi Arabia",t:"Asia/Riyadh"},
+  {c:"Khobar",n:"Saudi Arabia",t:"Asia/Riyadh"},
+  {c:"Taif",n:"Saudi Arabia",t:"Asia/Riyadh"},
+  {c:"Tabuk",n:"Saudi Arabia",t:"Asia/Riyadh"},
+  {c:"Abha",n:"Saudi Arabia",t:"Asia/Riyadh"},
+  {c:"Sanaa",n:"Yemen",t:"Asia/Aden"},
+  {c:"Aden",n:"Yemen",t:"Asia/Aden"},
+  {c:"Taiz",n:"Yemen",t:"Asia/Aden"},
+  {c:"Hodeidah",n:"Yemen",t:"Asia/Aden"},
+  {c:"Kabul",n:"Afghanistan",t:"Asia/Kabul"},
+  {c:"Kandahar",n:"Afghanistan",t:"Asia/Kabul"},
+  {c:"Herat",n:"Afghanistan",t:"Asia/Kabul"},
+  {c:"Islamabad",n:"Pakistan",t:"Asia/Karachi"},
+  {c:"Karachi",n:"Pakistan",t:"Asia/Karachi"},
+  {c:"Lahore",n:"Pakistan",t:"Asia/Karachi"},
+  {c:"Faisalabad",n:"Pakistan",t:"Asia/Karachi"},
+  {c:"Rawalpindi",n:"Pakistan",t:"Asia/Karachi"},
+  {c:"Multan",n:"Pakistan",t:"Asia/Karachi"},
+  {c:"Gujranwala",n:"Pakistan",t:"Asia/Karachi"},
+  {c:"Peshawar",n:"Pakistan",t:"Asia/Karachi"},
+  {c:"Quetta",n:"Pakistan",t:"Asia/Karachi"},
+  {c:"Hyderabad",n:"Pakistan",t:"Asia/Karachi"},
+  {c:"Tashkent",n:"Uzbekistan",t:"Asia/Tashkent"},
+  {c:"Samarkand",n:"Uzbekistan",t:"Asia/Samarkand"},
+  {c:"Namangan",n:"Uzbekistan",t:"Asia/Tashkent"},
+  {c:"Andijan",n:"Uzbekistan",t:"Asia/Tashkent"},
+  {c:"Nukus",n:"Uzbekistan",t:"Asia/Tashkent"},
+  {c:"Almaty",n:"Kazakhstan",t:"Asia/Almaty"},
+  {c:"Nur-Sultan",n:"Kazakhstan",t:"Asia/Almaty"},
+  {c:"Shymkent",n:"Kazakhstan",t:"Asia/Almaty"},
+  {c:"Karaganda",n:"Kazakhstan",t:"Asia/Almaty"},
+  {c:"Aktobe",n:"Kazakhstan",t:"Asia/Aqtobe"},
+  {c:"Atyrau",n:"Kazakhstan",t:"Asia/Atyrau"},
+  {c:"Aktau",n:"Kazakhstan",t:"Asia/Aqtau"},
+  {c:"Oral",n:"Kazakhstan",t:"Asia/Oral"},
+  {c:"Bishkek",n:"Kyrgyzstan",t:"Asia/Bishkek"},
+  {c:"Osh",n:"Kyrgyzstan",t:"Asia/Bishkek"},
+  {c:"Dushanbe",n:"Tajikistan",t:"Asia/Dushanbe"},
+  {c:"Khujand",n:"Tajikistan",t:"Asia/Dushanbe"},
+  {c:"Ashgabat",n:"Turkmenistan",t:"Asia/Ashgabat"},
+  {c:"Mary",n:"Turkmenistan",t:"Asia/Ashgabat"},
+  {c:"Delhi",n:"India",t:"Asia/Kolkata"},
+  {c:"Mumbai",n:"India",t:"Asia/Kolkata"},
+  {c:"Bangalore",n:"India",t:"Asia/Kolkata"},
+  {c:"Hyderabad",n:"India",t:"Asia/Kolkata"},
+  {c:"Chennai",n:"India",t:"Asia/Kolkata"},
+  {c:"Kolkata",n:"India",t:"Asia/Kolkata"},
+  {c:"Ahmedabad",n:"India",t:"Asia/Kolkata"},
+  {c:"Pune",n:"India",t:"Asia/Kolkata"},
+  {c:"Surat",n:"India",t:"Asia/Kolkata"},
+  {c:"Jaipur",n:"India",t:"Asia/Kolkata"},
+  {c:"Lucknow",n:"India",t:"Asia/Kolkata"},
+  {c:"Kanpur",n:"India",t:"Asia/Kolkata"},
+  {c:"Nagpur",n:"India",t:"Asia/Kolkata"},
+  {c:"Indore",n:"India",t:"Asia/Kolkata"},
+  {c:"Bhopal",n:"India",t:"Asia/Kolkata"},
+  {c:"Patna",n:"India",t:"Asia/Kolkata"},
+  {c:"Agra",n:"India",t:"Asia/Kolkata"},
+  {c:"Varanasi",n:"India",t:"Asia/Kolkata"},
+  {c:"Vadodara",n:"India",t:"Asia/Kolkata"},
+  {c:"Coimbatore",n:"India",t:"Asia/Kolkata"},
+  {c:"Ludhiana",n:"India",t:"Asia/Kolkata"},
+  {c:"Amritsar",n:"India",t:"Asia/Kolkata"},
+  {c:"Madurai",n:"India",t:"Asia/Kolkata"},
+  {c:"Kochi",n:"India",t:"Asia/Kolkata"},
+  {c:"Visakhapatnam",n:"India",t:"Asia/Kolkata"},
+  {c:"Thiruvananthapuram",n:"India",t:"Asia/Kolkata"},
+  {c:"Nashik",n:"India",t:"Asia/Kolkata"},
+  {c:"Rajkot",n:"India",t:"Asia/Kolkata"},
+  {c:"Meerut",n:"India",t:"Asia/Kolkata"},
+  {c:"Aurangabad",n:"India",t:"Asia/Kolkata"},
+  {c:"Jodhpur",n:"India",t:"Asia/Kolkata"},
+  {c:"Faridabad",n:"India",t:"Asia/Kolkata"},
+  {c:"Ghaziabad",n:"India",t:"Asia/Kolkata"},
+  {c:"Chandigarh",n:"India",t:"Asia/Kolkata"},
+  {c:"Kathmandu",n:"Nepal",t:"Asia/Kathmandu"},
+  {c:"Pokhara",n:"Nepal",t:"Asia/Kathmandu"},
+  {c:"Lalitpur",n:"Nepal",t:"Asia/Kathmandu"},
+  {c:"Thimphu",n:"Bhutan",t:"Asia/Thimphu"},
+  {c:"Paro",n:"Bhutan",t:"Asia/Thimphu"},
+  {c:"Dhaka",n:"Bangladesh",t:"Asia/Dhaka"},
+  {c:"Chittagong",n:"Bangladesh",t:"Asia/Dhaka"},
+  {c:"Khulna",n:"Bangladesh",t:"Asia/Dhaka"},
+  {c:"Rajshahi",n:"Bangladesh",t:"Asia/Dhaka"},
+  {c:"Sylhet",n:"Bangladesh",t:"Asia/Dhaka"},
+  {c:"Colombo",n:"Sri Lanka",t:"Asia/Colombo"},
+  {c:"Kandy",n:"Sri Lanka",t:"Asia/Colombo"},
+  {c:"Galle",n:"Sri Lanka",t:"Asia/Colombo"},
+  {c:"Male",n:"Maldives",t:"Indian/Maldives"},
+  {c:"Addu",n:"Maldives",t:"Indian/Maldives"},
+  {c:"Yangon",n:"Myanmar",t:"Asia/Rangoon"},
+  {c:"Mandalay",n:"Myanmar",t:"Asia/Rangoon"},
+  {c:"Naypyidaw",n:"Myanmar",t:"Asia/Rangoon"},
+  {c:"Bangkok",n:"Thailand",t:"Asia/Bangkok"},
+  {c:"Chiang Mai",n:"Thailand",t:"Asia/Bangkok"},
+  {c:"Pattaya",n:"Thailand",t:"Asia/Bangkok"},
+  {c:"Phuket",n:"Thailand",t:"Asia/Bangkok"},
+  {c:"Nonthaburi",n:"Thailand",t:"Asia/Bangkok"},
+  {c:"Hat Yai",n:"Thailand",t:"Asia/Bangkok"},
+  {c:"Nakhon Ratchasima",n:"Thailand",t:"Asia/Bangkok"},
+  {c:"Vientiane",n:"Laos",t:"Asia/Vientiane"},
+  {c:"Luang Prabang",n:"Laos",t:"Asia/Vientiane"},
+  {c:"Phnom Penh",n:"Cambodia",t:"Asia/Phnom_Penh"},
+  {c:"Siem Reap",n:"Cambodia",t:"Asia/Phnom_Penh"},
+  {c:"Sihanoukville",n:"Cambodia",t:"Asia/Phnom_Penh"},
+  {c:"Ho Chi Minh City",n:"Vietnam",t:"Asia/Ho_Chi_Minh"},
+  {c:"Hanoi",n:"Vietnam",t:"Asia/Ho_Chi_Minh"},
+  {c:"Da Nang",n:"Vietnam",t:"Asia/Ho_Chi_Minh"},
+  {c:"Hai Phong",n:"Vietnam",t:"Asia/Ho_Chi_Minh"},
+  {c:"Can Tho",n:"Vietnam",t:"Asia/Ho_Chi_Minh"},
+  {c:"Nha Trang",n:"Vietnam",t:"Asia/Ho_Chi_Minh"},
+  {c:"Hue",n:"Vietnam",t:"Asia/Ho_Chi_Minh"},
+  {c:"Bien Hoa",n:"Vietnam",t:"Asia/Ho_Chi_Minh"},
+  {c:"Kuala Lumpur",n:"Malaysia",t:"Asia/Kuala_Lumpur"},
+  {c:"George Town",n:"Malaysia",t:"Asia/Kuala_Lumpur"},
+  {c:"Ipoh",n:"Malaysia",t:"Asia/Kuala_Lumpur"},
+  {c:"Johor Bahru",n:"Malaysia",t:"Asia/Kuala_Lumpur"},
+  {c:"Kota Kinabalu",n:"Malaysia",t:"Asia/Kuching"},
+  {c:"Kuching",n:"Malaysia",t:"Asia/Kuching"},
+  {c:"Singapore",n:"Singapore",t:"Asia/Singapore"},
+  {c:"Jakarta",n:"Indonesia",t:"Asia/Jakarta"},
+  {c:"Surabaya",n:"Indonesia",t:"Asia/Jakarta"},
+  {c:"Bandung",n:"Indonesia",t:"Asia/Jakarta"},
+  {c:"Medan",n:"Indonesia",t:"Asia/Jakarta"},
+  {c:"Semarang",n:"Indonesia",t:"Asia/Jakarta"},
+  {c:"Palembang",n:"Indonesia",t:"Asia/Jakarta"},
+  {c:"Tangerang",n:"Indonesia",t:"Asia/Jakarta"},
+  {c:"Depok",n:"Indonesia",t:"Asia/Jakarta"},
+  {c:"South Tangerang",n:"Indonesia",t:"Asia/Jakarta"},
+  {c:"Bekasi",n:"Indonesia",t:"Asia/Jakarta"},
+  {c:"Batam",n:"Indonesia",t:"Asia/Jakarta"},
+  {c:"Pekanbaru",n:"Indonesia",t:"Asia/Jakarta"},
+  {c:"Bandar Lampung",n:"Indonesia",t:"Asia/Jakarta"},
+  {c:"Padang",n:"Indonesia",t:"Asia/Jakarta"},
+  {c:"Makassar",n:"Indonesia",t:"Asia/Makassar"},
+  {c:"Denpasar",n:"Indonesia",t:"Asia/Makassar"},
+  {c:"Mataram",n:"Indonesia",t:"Asia/Makassar"},
+  {c:"Balikpapan",n:"Indonesia",t:"Asia/Makassar"},
+  {c:"Samarinda",n:"Indonesia",t:"Asia/Makassar"},
+  {c:"Jayapura",n:"Indonesia",t:"Asia/Jayapura"},
+  {c:"Manado",n:"Indonesia",t:"Asia/Makassar"},
+  {c:"Banjarmasin",n:"Indonesia",t:"Asia/Makassar"},
+  {c:"Manila",n:"Philippines",t:"Asia/Manila"},
+  {c:"Quezon City",n:"Philippines",t:"Asia/Manila"},
+  {c:"Davao",n:"Philippines",t:"Asia/Manila"},
+  {c:"Caloocan",n:"Philippines",t:"Asia/Manila"},
+  {c:"Cebu",n:"Philippines",t:"Asia/Manila"},
+  {c:"Zamboanga",n:"Philippines",t:"Asia/Manila"},
+  {c:"Antipolo",n:"Philippines",t:"Asia/Manila"},
+  {c:"Pasig",n:"Philippines",t:"Asia/Manila"},
+  {c:"Taguig",n:"Philippines",t:"Asia/Manila"},
+  {c:"Cagayan de Oro",n:"Philippines",t:"Asia/Manila"},
+  {c:"Paranaque",n:"Philippines",t:"Asia/Manila"},
+  {c:"Makati",n:"Philippines",t:"Asia/Manila"},
+  {c:"Bacoor",n:"Philippines",t:"Asia/Manila"},
+  {c:"Bacolod",n:"Philippines",t:"Asia/Manila"},
+  {c:"General Santos",n:"Philippines",t:"Asia/Manila"},
+  {c:"Dili",n:"Timor-Leste",t:"Asia/Dili"},
+  {c:"Bandar Seri Begawan",n:"Brunei",t:"Asia/Brunei"},
+  {c:"Hong Kong",n:"Hong Kong",t:"Asia/Hong_Kong"},
+  {c:"Kowloon",n:"Hong Kong",t:"Asia/Hong_Kong"},
+  {c:"Macau",n:"Macau",t:"Asia/Macau"},
+  {c:"Beijing",n:"China",t:"Asia/Shanghai"},
+  {c:"Shanghai",n:"China",t:"Asia/Shanghai"},
+  {c:"Shenzhen",n:"China",t:"Asia/Shanghai"},
+  {c:"Guangzhou",n:"China",t:"Asia/Shanghai"},
+  {c:"Chengdu",n:"China",t:"Asia/Shanghai"},
+  {c:"Wuhan",n:"China",t:"Asia/Shanghai"},
+  {c:"Chongqing",n:"China",t:"Asia/Shanghai"},
+  {c:"Tianjin",n:"China",t:"Asia/Shanghai"},
+  {c:"Nanjing",n:"China",t:"Asia/Shanghai"},
+  {c:"Xian",n:"China",t:"Asia/Shanghai"},
+  {c:"Hangzhou",n:"China",t:"Asia/Shanghai"},
+  {c:"Harbin",n:"China",t:"Asia/Shanghai"},
+  {c:"Shenyang",n:"China",t:"Asia/Shanghai"},
+  {c:"Qingdao",n:"China",t:"Asia/Shanghai"},
+  {c:"Zhengzhou",n:"China",t:"Asia/Shanghai"},
+  {c:"Dongguan",n:"China",t:"Asia/Shanghai"},
+  {c:"Foshan",n:"China",t:"Asia/Shanghai"},
+  {c:"Nanchang",n:"China",t:"Asia/Shanghai"},
+  {c:"Changchun",n:"China",t:"Asia/Shanghai"},
+  {c:"Kunming",n:"China",t:"Asia/Shanghai"},
+  {c:"Changsha",n:"China",t:"Asia/Shanghai"},
+  {c:"Jinan",n:"China",t:"Asia/Shanghai"},
+  {c:"Dalian",n:"China",t:"Asia/Shanghai"},
+  {c:"Xiamen",n:"China",t:"Asia/Shanghai"},
+  {c:"Suzhou",n:"China",t:"Asia/Shanghai"},
+  {c:"Shijiazhuang",n:"China",t:"Asia/Shanghai"},
+  {c:"Hefei",n:"China",t:"Asia/Shanghai"},
+  {c:"Nanning",n:"China",t:"Asia/Shanghai"},
+  {c:"Guiyang",n:"China",t:"Asia/Shanghai"},
+  {c:"Lanzhou",n:"China",t:"Asia/Shanghai"},
+  {c:"Wuxi",n:"China",t:"Asia/Shanghai"},
+  {c:"Ningbo",n:"China",t:"Asia/Shanghai"},
+  {c:"Fuzhou",n:"China",t:"Asia/Shanghai"},
+  {c:"Wenzhou",n:"China",t:"Asia/Shanghai"},
+  {c:"Taiyuan",n:"China",t:"Asia/Shanghai"},
+  {c:"Hohhot",n:"China",t:"Asia/Shanghai"},
+  {c:"Yinchuan",n:"China",t:"Asia/Shanghai"},
+  {c:"Xining",n:"China",t:"Asia/Shanghai"},
+  {c:"Lhasa",n:"China",t:"Asia/Shanghai"},
+  {c:"Urumqi",n:"China",t:"Asia/Urumqi"},
+  {c:"Kashgar",n:"China",t:"Asia/Urumqi"},
+  {c:"Taipei",n:"Taiwan",t:"Asia/Taipei"},
+  {c:"Kaohsiung",n:"Taiwan",t:"Asia/Taipei"},
+  {c:"Taichung",n:"Taiwan",t:"Asia/Taipei"},
+  {c:"Tainan",n:"Taiwan",t:"Asia/Taipei"},
+  {c:"Ulaanbaatar",n:"Mongolia",t:"Asia/Ulaanbaatar"},
+  {c:"Erdenet",n:"Mongolia",t:"Asia/Ulaanbaatar"},
+  {c:"Seoul",n:"South Korea",t:"Asia/Seoul"},
+  {c:"Busan",n:"South Korea",t:"Asia/Seoul"},
+  {c:"Incheon",n:"South Korea",t:"Asia/Seoul"},
+  {c:"Daegu",n:"South Korea",t:"Asia/Seoul"},
+  {c:"Daejeon",n:"South Korea",t:"Asia/Seoul"},
+  {c:"Gwangju",n:"South Korea",t:"Asia/Seoul"},
+  {c:"Suwon",n:"South Korea",t:"Asia/Seoul"},
+  {c:"Ulsan",n:"South Korea",t:"Asia/Seoul"},
+  {c:"Pyongyang",n:"North Korea",t:"Asia/Pyongyang"},
+  {c:"Tokyo",n:"Japan",t:"Asia/Tokyo"},
+  {c:"Yokohama",n:"Japan",t:"Asia/Tokyo"},
+  {c:"Osaka",n:"Japan",t:"Asia/Tokyo"},
+  {c:"Nagoya",n:"Japan",t:"Asia/Tokyo"},
+  {c:"Sapporo",n:"Japan",t:"Asia/Tokyo"},
+  {c:"Kobe",n:"Japan",t:"Asia/Tokyo"},
+  {c:"Kyoto",n:"Japan",t:"Asia/Tokyo"},
+  {c:"Fukuoka",n:"Japan",t:"Asia/Tokyo"},
+  {c:"Kawasaki",n:"Japan",t:"Asia/Tokyo"},
+  {c:"Saitama",n:"Japan",t:"Asia/Tokyo"},
+  {c:"Hiroshima",n:"Japan",t:"Asia/Tokyo"},
+  {c:"Sendai",n:"Japan",t:"Asia/Tokyo"},
+  {c:"Chiba",n:"Japan",t:"Asia/Tokyo"},
+  {c:"Kitakyushu",n:"Japan",t:"Asia/Tokyo"},
+  {c:"Sakai",n:"Japan",t:"Asia/Tokyo"},
+  {c:"Niigata",n:"Japan",t:"Asia/Tokyo"},
+  {c:"Hamamatsu",n:"Japan",t:"Asia/Tokyo"},
+  {c:"Shizuoka",n:"Japan",t:"Asia/Tokyo"},
+  {c:"Sagamihara",n:"Japan",t:"Asia/Tokyo"},
+  {c:"Okinawa",n:"Japan",t:"Asia/Tokyo"},
+  {c:"Kumamoto",n:"Japan",t:"Asia/Tokyo"},
+  {c:"Okayama",n:"Japan",t:"Asia/Tokyo"},
+  {c:"Naha",n:"Japan",t:"Asia/Tokyo"},
+  {c:"Casablanca",n:"Morocco",t:"Africa/Casablanca"},
+  {c:"Rabat",n:"Morocco",t:"Africa/Casablanca"},
+  {c:"Fez",n:"Morocco",t:"Africa/Casablanca"},
+  {c:"Marrakech",n:"Morocco",t:"Africa/Casablanca"},
+  {c:"Tangier",n:"Morocco",t:"Africa/Casablanca"},
+  {c:"Agadir",n:"Morocco",t:"Africa/Casablanca"},
+  {c:"Algiers",n:"Algeria",t:"Africa/Algiers"},
+  {c:"Oran",n:"Algeria",t:"Africa/Algiers"},
+  {c:"Constantine",n:"Algeria",t:"Africa/Algiers"},
+  {c:"Annaba",n:"Algeria",t:"Africa/Algiers"},
+  {c:"Tunis",n:"Tunisia",t:"Africa/Tunis"},
+  {c:"Sfax",n:"Tunisia",t:"Africa/Tunis"},
+  {c:"Sousse",n:"Tunisia",t:"Africa/Tunis"},
+  {c:"Tripoli",n:"Libya",t:"Africa/Tripoli"},
+  {c:"Benghazi",n:"Libya",t:"Africa/Tripoli"},
+  {c:"Cairo",n:"Egypt",t:"Africa/Cairo"},
+  {c:"Alexandria",n:"Egypt",t:"Africa/Cairo"},
+  {c:"Giza",n:"Egypt",t:"Africa/Cairo"},
+  {c:"Shubra el-Kheima",n:"Egypt",t:"Africa/Cairo"},
+  {c:"Port Said",n:"Egypt",t:"Africa/Cairo"},
+  {c:"Suez",n:"Egypt",t:"Africa/Cairo"},
+  {c:"Luxor",n:"Egypt",t:"Africa/Cairo"},
+  {c:"Aswan",n:"Egypt",t:"Africa/Cairo"},
+  {c:"Hurghada",n:"Egypt",t:"Africa/Cairo"},
+  {c:"Khartoum",n:"Sudan",t:"Africa/Khartoum"},
+  {c:"Omdurman",n:"Sudan",t:"Africa/Khartoum"},
+  {c:"Juba",n:"South Sudan",t:"Africa/Juba"},
+  {c:"Asmara",n:"Eritrea",t:"Africa/Asmara"},
+  {c:"Addis Ababa",n:"Ethiopia",t:"Africa/Addis_Ababa"},
+  {c:"Dire Dawa",n:"Ethiopia",t:"Africa/Addis_Ababa"},
+  {c:"Mekele",n:"Ethiopia",t:"Africa/Addis_Ababa"},
+  {c:"Bahir Dar",n:"Ethiopia",t:"Africa/Addis_Ababa"},
+  {c:"Djibouti City",n:"Djibouti",t:"Africa/Djibouti"},
+  {c:"Mogadishu",n:"Somalia",t:"Africa/Mogadishu"},
+  {c:"Hargeisa",n:"Somaliland",t:"Africa/Mogadishu"},
+  {c:"Nairobi",n:"Kenya",t:"Africa/Nairobi"},
+  {c:"Mombasa",n:"Kenya",t:"Africa/Nairobi"},
+  {c:"Kisumu",n:"Kenya",t:"Africa/Nairobi"},
+  {c:"Kampala",n:"Uganda",t:"Africa/Kampala"},
+  {c:"Entebbe",n:"Uganda",t:"Africa/Kampala"},
+  {c:"Kigali",n:"Rwanda",t:"Africa/Kigali"},
+  {c:"Bujumbura",n:"Burundi",t:"Africa/Bujumbura"},
+  {c:"Dar es Salaam",n:"Tanzania",t:"Africa/Dar_es_Salaam"},
+  {c:"Dodoma",n:"Tanzania",t:"Africa/Dar_es_Salaam"},
+  {c:"Mwanza",n:"Tanzania",t:"Africa/Dar_es_Salaam"},
+  {c:"Arusha",n:"Tanzania",t:"Africa/Dar_es_Salaam"},
+  {c:"Zanzibar City",n:"Tanzania",t:"Africa/Dar_es_Salaam"},
+  {c:"Kinshasa",n:"DR Congo",t:"Africa/Kinshasa"},
+  {c:"Lubumbashi",n:"DR Congo",t:"Africa/Lubumbashi"},
+  {c:"Mbuji-Mayi",n:"DR Congo",t:"Africa/Lubumbashi"},
+  {c:"Kisangani",n:"DR Congo",t:"Africa/Kinshasa"},
+  {c:"Goma",n:"DR Congo",t:"Africa/Lubumbashi"},
+  {c:"Brazzaville",n:"Congo",t:"Africa/Brazzaville"},
+  {c:"Pointe-Noire",n:"Congo",t:"Africa/Brazzaville"},
+  {c:"Libreville",n:"Gabon",t:"Africa/Libreville"},
+  {c:"Malabo",n:"Eq. Guinea",t:"Africa/Malabo"},
+  {c:"Yaounde",n:"Cameroon",t:"Africa/Douala"},
+  {c:"Douala",n:"Cameroon",t:"Africa/Douala"},
+  {c:"Bangui",n:"C.A.R.",t:"Africa/Bangui"},
+  {c:"Ndjamena",n:"Chad",t:"Africa/Ndjamena"},
+  {c:"Sao Tome",n:"Sao Tome",t:"Africa/Sao_Tome"},
+  {c:"Lagos",n:"Nigeria",t:"Africa/Lagos"},
+  {c:"Abuja",n:"Nigeria",t:"Africa/Lagos"},
+  {c:"Kano",n:"Nigeria",t:"Africa/Lagos"},
+  {c:"Ibadan",n:"Nigeria",t:"Africa/Lagos"},
+  {c:"Port Harcourt",n:"Nigeria",t:"Africa/Lagos"},
+  {c:"Benin City",n:"Nigeria",t:"Africa/Lagos"},
+  {c:"Kaduna",n:"Nigeria",t:"Africa/Lagos"},
+  {c:"Enugu",n:"Nigeria",t:"Africa/Lagos"},
+  {c:"Onitsha",n:"Nigeria",t:"Africa/Lagos"},
+  {c:"Niamey",n:"Niger",t:"Africa/Niamey"},
+  {c:"Zinder",n:"Niger",t:"Africa/Niamey"},
+  {c:"Ouagadougou",n:"Burkina Faso",t:"Africa/Ouagadougou"},
+  {c:"Bamako",n:"Mali",t:"Africa/Bamako"},
+  {c:"Timbuktu",n:"Mali",t:"Africa/Bamako"},
+  {c:"Lome",n:"Togo",t:"Africa/Lome"},
+  {c:"Cotonou",n:"Benin",t:"Africa/Porto-Novo"},
+  {c:"Porto-Novo",n:"Benin",t:"Africa/Porto-Novo"},
+  {c:"Accra",n:"Ghana",t:"Africa/Accra"},
+  {c:"Kumasi",n:"Ghana",t:"Africa/Accra"},
+  {c:"Tamale",n:"Ghana",t:"Africa/Accra"},
+  {c:"Abidjan",n:"Ivory Coast",t:"Africa/Abidjan"},
+  {c:"Yamoussoukro",n:"Ivory Coast",t:"Africa/Abidjan"},
+  {c:"Dakar",n:"Senegal",t:"Africa/Dakar"},
+  {c:"Touba",n:"Senegal",t:"Africa/Dakar"},
+  {c:"Banjul",n:"Gambia",t:"Africa/Banjul"},
+  {c:"Conakry",n:"Guinea",t:"Africa/Conakry"},
+  {c:"Freetown",n:"Sierra Leone",t:"Africa/Freetown"},
+  {c:"Monrovia",n:"Liberia",t:"Africa/Monrovia"},
+  {c:"Bissau",n:"Guinea-Bissau",t:"Africa/Bissau"},
+  {c:"Nouakchott",n:"Mauritania",t:"Africa/Nouakchott"},
+  {c:"Praia",n:"Cape Verde",t:"Atlantic/Cape_Verde"},
+  {c:"Sao Vicente",n:"Cape Verde",t:"Atlantic/Cape_Verde"},
+  {c:"Luanda",n:"Angola",t:"Africa/Luanda"},
+  {c:"Huambo",n:"Angola",t:"Africa/Luanda"},
+  {c:"Lusaka",n:"Zambia",t:"Africa/Lusaka"},
+  {c:"Kitwe",n:"Zambia",t:"Africa/Lusaka"},
+  {c:"Harare",n:"Zimbabwe",t:"Africa/Harare"},
+  {c:"Bulawayo",n:"Zimbabwe",t:"Africa/Harare"},
+  {c:"Lilongwe",n:"Malawi",t:"Africa/Blantyre"},
+  {c:"Blantyre",n:"Malawi",t:"Africa/Blantyre"},
+  {c:"Maputo",n:"Mozambique",t:"Africa/Maputo"},
+  {c:"Beira",n:"Mozambique",t:"Africa/Maputo"},
+  {c:"Nampula",n:"Mozambique",t:"Africa/Maputo"},
+  {c:"Johannesburg",n:"South Africa",t:"Africa/Johannesburg"},
+  {c:"Cape Town",n:"South Africa",t:"Africa/Johannesburg"},
+  {c:"Durban",n:"South Africa",t:"Africa/Johannesburg"},
+  {c:"Pretoria",n:"South Africa",t:"Africa/Johannesburg"},
+  {c:"Port Elizabeth",n:"South Africa",t:"Africa/Johannesburg"},
+  {c:"Bloemfontein",n:"South Africa",t:"Africa/Johannesburg"},
+  {c:"East London",n:"South Africa",t:"Africa/Johannesburg"},
+  {c:"Vereeniging",n:"South Africa",t:"Africa/Johannesburg"},
+  {c:"Gaborone",n:"Botswana",t:"Africa/Gaborone"},
+  {c:"Francistown",n:"Botswana",t:"Africa/Gaborone"},
+  {c:"Windhoek",n:"Namibia",t:"Africa/Windhoek"},
+  {c:"Walvis Bay",n:"Namibia",t:"Africa/Windhoek"},
+  {c:"Mbabane",n:"Eswatini",t:"Africa/Mbabane"},
+  {c:"Maseru",n:"Lesotho",t:"Africa/Maseru"},
+  {c:"Antananarivo",n:"Madagascar",t:"Indian/Antananarivo"},
+  {c:"Toamasina",n:"Madagascar",t:"Indian/Antananarivo"},
+  {c:"Port Louis",n:"Mauritius",t:"Indian/Mauritius"},
+  {c:"Victoria",n:"Seychelles",t:"Indian/Mahe"},
+  {c:"Moroni",n:"Comoros",t:"Indian/Comoro"},
+  {c:"Mamoudzou",n:"Mayotte",t:"Indian/Mayotte"},
+  {c:"Saint-Denis",n:"Reunion",t:"Indian/Reunion"},
+  {c:"Diego Garcia",n:"BIOT",t:"Indian/Chagos"},
+  {c:"Port Blair",n:"India",t:"Asia/Kolkata"},
+  {c:"Sydney",n:"Australia",t:"Australia/Sydney"},
+  {c:"Melbourne",n:"Australia",t:"Australia/Melbourne"},
+  {c:"Brisbane",n:"Australia",t:"Australia/Brisbane"},
+  {c:"Perth",n:"Australia",t:"Australia/Perth"},
+  {c:"Adelaide",n:"Australia",t:"Australia/Adelaide"},
+  {c:"Gold Coast",n:"Australia",t:"Australia/Brisbane"},
+  {c:"Newcastle",n:"Australia",t:"Australia/Sydney"},
+  {c:"Canberra",n:"Australia",t:"Australia/Sydney"},
+  {c:"Sunshine Coast",n:"Australia",t:"Australia/Brisbane"},
+  {c:"Wollongong",n:"Australia",t:"Australia/Sydney"},
+  {c:"Logan City",n:"Australia",t:"Australia/Brisbane"},
+  {c:"Geelong",n:"Australia",t:"Australia/Melbourne"},
+  {c:"Townsville",n:"Australia",t:"Australia/Brisbane"},
+  {c:"Hobart",n:"Australia",t:"Australia/Hobart"},
+  {c:"Cairns",n:"Australia",t:"Australia/Brisbane"},
+  {c:"Toowoomba",n:"Australia",t:"Australia/Brisbane"},
+  {c:"Ballarat",n:"Australia",t:"Australia/Melbourne"},
+  {c:"Bendigo",n:"Australia",t:"Australia/Melbourne"},
+  {c:"Launceston",n:"Australia",t:"Australia/Hobart"},
+  {c:"Mackay",n:"Australia",t:"Australia/Brisbane"},
+  {c:"Rockhampton",n:"Australia",t:"Australia/Brisbane"},
+  {c:"Darwin",n:"Australia",t:"Australia/Darwin"},
+  {c:"Alice Springs",n:"Australia",t:"Australia/Darwin"},
+  {c:"Auckland",n:"New Zealand",t:"Pacific/Auckland"},
+  {c:"Wellington",n:"New Zealand",t:"Pacific/Auckland"},
+  {c:"Christchurch",n:"New Zealand",t:"Pacific/Auckland"},
+  {c:"Hamilton",n:"New Zealand",t:"Pacific/Auckland"},
+  {c:"Tauranga",n:"New Zealand",t:"Pacific/Auckland"},
+  {c:"Napier",n:"New Zealand",t:"Pacific/Auckland"},
+  {c:"Palmerston North",n:"New Zealand",t:"Pacific/Auckland"},
+  {c:"Dunedin",n:"New Zealand",t:"Pacific/Auckland"},
+  {c:"Chatham Islands",n:"New Zealand",t:"Pacific/Chatham"},
+  {c:"Port Moresby",n:"Papua New Guinea",t:"Pacific/Port_Moresby"},
+  {c:"Lae",n:"Papua New Guinea",t:"Pacific/Port_Moresby"},
+  {c:"Bougainville",n:"Papua New Guinea",t:"Pacific/Bougainville"},
+  {c:"Honiara",n:"Solomon Islands",t:"Pacific/Guadalcanal"},
+  {c:"Port Vila",n:"Vanuatu",t:"Pacific/Efate"},
+  {c:"Noumea",n:"New Caledonia",t:"Pacific/Noumea"},
+  {c:"Suva",n:"Fiji",t:"Pacific/Fiji"},
+  {c:"Nadi",n:"Fiji",t:"Pacific/Fiji"},
+  {c:"Tarawa",n:"Kiribati",t:"Pacific/Tarawa"},
+  {c:"Funafuti",n:"Tuvalu",t:"Pacific/Funafuti"},
+  {c:"Yaren",n:"Nauru",t:"Pacific/Nauru"},
+  {c:"Majuro",n:"Marshall Islands",t:"Pacific/Majuro"},
+  {c:"Palikir",n:"Micronesia",t:"Pacific/Pohnpei"},
+  {c:"Koror",n:"Palau",t:"Pacific/Palau"},
+  {c:"Saipan",n:"N. Mariana Islands",t:"Pacific/Saipan"},
+  {c:"Hagatna",n:"Guam",t:"Pacific/Guam"},
+  {c:"Nuku alofa",n:"Tonga",t:"Pacific/Tongatapu"},
+  {c:"Kiritimati",n:"Kiribati",t:"Pacific/Kiritimati"},
+  {c:"Fakaofo",n:"Tokelau",t:"Pacific/Fakaofo"},
+  {c:"Mata-Utu",n:"Wallis and Futuna",t:"Pacific/Wallis"},
+  {c:"Alofi",n:"Futuna",t:"Pacific/Wallis"},
+  {c:"Norfolk Island",n:"Australia",t:"Pacific/Norfolk"},
+  {c:"Jamestown",n:"St Helena",t:"Atlantic/St_Helena"},
+  {c:"Georgetown",n:"Ascension",t:"Atlantic/St_Helena"},
+  {c:"Edinburgh of the Seven Seas",n:"Tristan da Cunha",t:"Atlantic/St_Helena"},
+];
+
+
+/* ═══════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════ */
+var MON      = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+var fromTz   = Intl.DateTimeFormat().resolvedOptions().timeZone;
+var nextNum  = 1;
+var dests    = [];   // [{num, tz, fmt, permanent}]
+var STORAGE  = "tc-v2";
+var _dropId  = 0;
+
+/* ═══════════════════════════════════════════════
+   UTILITIES
+═══════════════════════════════════════════════ */
+function norm(s){
+  return (s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
+}
+
+function utcLabel(tz){
+  try {
+    var now=new Date(), utc=new Date(now.toLocaleString("en-US",{timeZone:"UTC"})),
+        loc=new Date(now.toLocaleString("en-US",{timeZone:tz}));
+    var d=(loc-utc)/60000, h=Math.floor(Math.abs(d)/60), m=Math.abs(d)%60;
+    return "UTC"+(d>=0?"+":"−")+String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
+  } catch(e){ return "UTC"; }
+}
+
+function wallToUTC(year,month,day,h,m,tz){
+  var guess=new Date(Date.UTC(year,month-1,day,h,m,0)), p={};
+  new Intl.DateTimeFormat("en-US",{timeZone:tz,year:"numeric",month:"numeric",day:"numeric",
+    hour:"numeric",minute:"numeric",second:"numeric",hour12:false
+  }).formatToParts(guess).forEach(function(x){p[x.type]=x.value;});
+  var ph=+p.hour; if(ph===24)ph=0;
+  var wall=new Date(Date.UTC(+p.year,+p.month-1,+p.day,ph,+p.minute,+p.second));
+  return new Date(guess.getTime()+(guess.getTime()-wall.getTime()));
+}
+
+/* Score a city match against query (higher = better) */
+function scoreCity(city, q){
+  var cn=norm(city.c), nn=norm(city.n), full=cn+", "+nn;
+  if(cn===q||full===q)          return 100;
+  if(cn.startsWith(q))          return 80;
+  if(full.startsWith(q))        return 70;
+  if(cn.includes(q))            return 50;
+  if(nn.startsWith(q))          return 40;
+  if(nn.includes(q))            return 20;
+  return 0;
+}
+
+function searchCities(q){
+  if(!q) return CITIES.slice(0,16);
+  // check alias
+  var alias = ALIASES[norm(q)];
+  var nq = norm(alias||q);
+  var scored = [];
+  CITIES.forEach(function(c){
+    var s = scoreCity(c, nq);
+    if(s>0) scored.push({city:c, score:s});
+  });
+  scored.sort(function(a,b){return b.score-a.score;});
+  return scored.slice(0,14).map(function(x){return x.city;});
+}
+
+/* Highlight matched substring in display */
+function highlight(str, q){
+  if(!q) return str;
+  var nq=norm(q), ns=norm(str);
+  var i=ns.indexOf(nq);
+  if(i<0) return str;
+  return str.slice(0,i)+'<span class="dhl">'+str.slice(i,i+q.length)+'</span>'+str.slice(i+q.length);
+}
+
+/* ═══════════════════════════════════════════════
+   DROPDOWN
+═══════════════════════════════════════════════ */
+function makeDropdown(inp, drop, onSelect){
+  var hiIdx=-1, picking=false;
+  if(!drop.id) drop.id="drop-"+(++_dropId);
+  inp.setAttribute("role","combobox");
+  inp.setAttribute("aria-autocomplete","list");
+  inp.setAttribute("aria-haspopup","listbox");
+  inp.setAttribute("aria-expanded","false");
+  inp.setAttribute("aria-controls",drop.id);
+  drop.setAttribute("role","listbox");
+
+  function rows(){ return drop.querySelectorAll(".drow"); }
+
+  function setHi(i){
+    rows().forEach(function(r){r.classList.remove("hi");r.setAttribute("aria-selected","false");});
+    var all=rows();
+    if(i>=0&&i<all.length){
+      all[i].classList.add("hi");
+      all[i].setAttribute("aria-selected","true");
+      all[i].scrollIntoView({block:"nearest"});
+      inp.setAttribute("aria-activedescendant",all[i].id);
+    } else {
+      inp.removeAttribute("aria-activedescendant");
+    }
+    hiIdx=i;
+  }
+
+  function showList(q){
+    var list=searchCities(q);
+    drop.innerHTML="";
+    list.forEach(function(city,idx){
+      var row=document.createElement("div");
+      row.className="drow"; row.id=drop.id+"-"+idx;
+      row.setAttribute("role","option"); row.setAttribute("aria-selected","false");
+      var label=highlight(city.c+", "+city.n, q);
+      row.innerHTML="<span>"+label+"</span><span class='dtz'>"+utcLabel(city.t)+"</span>";
+      row.addEventListener("mousedown",function(){picking=true;});
+      row.addEventListener("mouseup",  function(){picking=false;commit(city);});
+      drop.appendChild(row);
+    });
+    drop.classList.add("open");
+    inp.setAttribute("aria-expanded","true");
+    hiIdx=-1;
+  }
+
+  function closeList(){
+    drop.classList.remove("open");
+    inp.setAttribute("aria-expanded","false");
+    inp.removeAttribute("aria-activedescendant");
+    hiIdx=-1;
+  }
+
+  function commit(city){
+    inp.value=city.c+", "+city.n;
+    closeList();
+    onSelect(city);
+  }
+
+  inp.addEventListener("focus",  function(){ if(inp.value.trim()) showList(inp.value); });
+  inp.addEventListener("input",  function(){ showList(inp.value); });
+  inp.addEventListener("blur",   function(){ if(picking)return; closeList(); });
+  inp.addEventListener("keydown",function(e){
+    var all=rows();
+    if(e.key==="ArrowDown"){ e.preventDefault(); setHi(Math.min(hiIdx+1,all.length-1)); }
+    else if(e.key==="ArrowUp"){ e.preventDefault(); setHi(Math.max(hiIdx-1,0)); }
+    else if(e.key==="Enter"){
+      e.preventDefault();
+      if(hiIdx>=0&&all[hiIdx]){ all[hiIdx].dispatchEvent(new MouseEvent("mousedown")); all[hiIdx].dispatchEvent(new MouseEvent("mouseup")); }
+      else { var m=searchCities(inp.value)[0]; if(m) commit(m); }
+    } else if(e.key==="Escape"){ closeList(); inp.blur(); }
+  });
+  return commit;
+}
+
+/* ═══════════════════════════════════════════════
+   ORIGIN WIRING
+═══════════════════════════════════════════════ */
+var setFrom = makeDropdown(
+  document.getElementById("from-inp"),
+  document.getElementById("from-drop"),
+  function(city){ fromTz=city.t; clearErr("err-city"); convertAll(); saveState(); }
+);
+
+["in-date","in-time"].forEach(function(id){
+  document.getElementById(id).addEventListener("change",function(){ clearAll(); convertAll(); saveState(); });
+});
+
+document.getElementById("now-btn").onclick=function(){
+  var now=new Date();
+  document.getElementById("in-date").value=now.toISOString().split("T")[0];
+  document.getElementById("in-time").value=
+    String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");
+  fromTz=Intl.DateTimeFormat().resolvedOptions().timeZone;
+  var m=CITIES.find(function(x){return x.t===fromTz;});
+  if(m) setFrom(m); else document.getElementById("from-inp").value=fromTz;
+  clearAll(); convertAll(); saveState();
+};
+
+/* ═══════════════════════════════════════════════
+   VALIDATION
+═══════════════════════════════════════════════ */
+var ERR_INPUT = {"err-city":"from-inp","err-date":"in-date","err-time":"in-time"};
+function showErr(id,msg){
+  var el=document.getElementById(id);
+  if(el){ el.textContent=msg||el.textContent; el.classList.add("show"); }
+  var inpId=ERR_INPUT[id];
+  if(inpId){ var inp=document.getElementById(inpId); if(inp) inp.classList.add("invalid"); }
+}
+function clearErr(id){
+  var el=document.getElementById(id);
+  if(el) el.classList.remove("show");
+  var inpId=ERR_INPUT[id];
+  if(inpId){ var inp=document.getElementById(inpId); if(inp) inp.classList.remove("invalid"); }
+}
+function clearAll(){ ["err-city","err-date","err-time"].forEach(clearErr); }
+
+function validateOrigin(){
+  var ok=true;
+  if(!fromTz||!document.getElementById("from-inp").value.trim()){
+    showErr("err-city"); ok=false;
+  }
+  if(!document.getElementById("in-date").value){
+    showErr("err-date"); ok=false;
+  }
+  if(!document.getElementById("in-time").value){
+    showErr("err-time"); ok=false;
+  }
+  return ok;
+}
+
+/* ═══════════════════════════════════════════════
+   CONVERT
+═══════════════════════════════════════════════ */
+function getOrigin(){
+  var ds=document.getElementById("in-date").value.split("-");
+  return {
+    year: parseInt(ds[0]), month:parseInt(ds[1]), day:parseInt(ds[2]),
+    tv:   document.getElementById("in-time").value
+  };
+}
+
+function convertCard(dest){
+  var card=document.getElementById("card-"+dest.num);
+  if(!card) return;
+  function write(sel,val,live){
+    var el=card.querySelector(sel); if(!el) return;
+    el.textContent=val;
+    if(live){ el.classList.add("live"); el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); }
+    else { el.classList.remove("live","flash"); }
+  }
+  var o=getOrigin();
+  if(!dest.tz||!o.year||!o.month||!o.day||!o.tv){
+    [".c-date",".c-time",".c-tz"].forEach(function(s){write(s,"—",false);}); return;
+  }
+  var h=parseInt(o.tv.split(":")[0]), m=parseInt(o.tv.split(":")[1]);
+  try {
+    var utc=wallToUTC(o.year,o.month,o.day,h,m,fromTz), p={};
+    new Intl.DateTimeFormat("en-US",{timeZone:dest.tz,year:"numeric",month:"short",day:"numeric",
+      hour:"2-digit",minute:"2-digit",hour12:dest.fmt===12
+    }).formatToParts(utc).forEach(function(x){p[x.type]=x.value;});
+    var ts=dest.fmt===12
+      ? p.hour+":"+p.minute+" "+(p.dayPeriod||"")
+      : p.hour+":"+p.minute;
+    var dateStr=p.month+" "+p.day+", "+p.year;
+    write(".c-date", dateStr,          true);
+    write(".c-time", ts,               true);
+    write(".c-tz",   utcLabel(dest.tz),true);
+  } catch(e){
+    [".c-date",".c-time",".c-tz"].forEach(function(s){write(s,"—",false);});
+  }
+}
+
+function convertAll(){
+  if(!validateOrigin()) return;
+  clearAll();
+  dests.forEach(convertCard);
+}
+
+/* ═══════════════════════════════════════════════
+   COPY RESULT
+═══════════════════════════════════════════════ */
+function buildCopyText(dest){
+  var card=document.getElementById("card-"+dest.num); if(!card) return "";
+  var city=card.querySelector(".c-city-inp").value.trim();
+  var date=card.querySelector(".c-date").textContent;
+  var time=card.querySelector(".c-time").textContent;
+  var tz  =card.querySelector(".c-tz").textContent;
+  if(!city)          return "No city selected yet.";
+  if(date==="—")     return city + " — set an origin time to convert.";
+  return city+"\n"+date+" · "+time+"\n"+tz;
+}
+
+function flashBtn(btn, msg){
+  var orig=btn.textContent;
+  btn.textContent=msg; btn.classList.add("copied");
+  setTimeout(function(){ btn.textContent=orig; btn.classList.remove("copied"); },1800);
+}
+
+
+function saveState(){
+  try{ localStorage.setItem(STORAGE,JSON.stringify(buildState())); }catch(e){}
+}
+
+function loadState(){
+  try{ var r=localStorage.getItem(STORAGE); return r?JSON.parse(r):null; }catch(e){ return null; }
+}
+
+
+/* ═══════════════════════════════════════════════
+   CREATE CARD
+═══════════════════════════════════════════════ */
+function createCard(saved, permanent){
+  var num=nextNum++;
+  var dest={num:num, tz:saved?saved.tz:null, fmt:saved?saved.fmt:24, permanent:!!permanent};
+  dests.push(dest);
+
+  var card=document.createElement("div");
+  card.className="dest-card"; card.id="card-"+num;
+  var dropId="drop-d-"+num;
+
+  var actionBtns=
+    '<div class="card-actions">'+
+    '<button class="copy-btn" aria-label="Copy result for destination '+num+'">copy</button>'+
+    (permanent?'':'<button class="remove-btn" aria-label="Remove destination '+num+'">remove</button>')+
+    '</div>';
+
+  card.innerHTML=
+    actionBtns+
+    '<div class="ptag"><span class="pdot pdot-red"></span>Destination '+num+'</div>'+
+
+    '<div class="fld">'+
+      '<label class="flabel" for="ci-'+num+'">City</label>'+
+      '<div class="cwrap">'+
+        '<input type="text" id="ci-'+num+'" class="c-city-inp"'+
+          ' placeholder="e.g. Kobe, London, Dubai\u2026" autocomplete="off"'+
+          ' role="combobox" aria-autocomplete="list"'+
+          ' aria-expanded="false" aria-controls="'+dropId+'"'+
+          ' aria-haspopup="listbox">'+
+        '<div class="drop c-city-drop" id="'+dropId+'" role="listbox" aria-label="City suggestions"></div>'+
+      '</div>'+
+    '</div>'+
+
+    '<div class="fld">'+
+      '<label class="flabel">Date</label>'+
+      '<div class="outbox c-date" aria-live="polite">\u2014</div>'+
+    '</div>'+
+
+    '<div class="result-row">'+
+      '<div>'+
+        '<label class="flabel">Time</label>'+
+        '<div class="outbox c-time" aria-live="polite">\u2014</div>'+
+      '</div>'+
+      '<div>'+
+        '<div class="flabel-row">'+
+          '<label class="flabel">Format</label>'+
+        '</div>'+
+        '<div class="tog" role="group" aria-label="Time format">'+
+          '<button class="tb'+(dest.fmt===24?' on':'')+' c-btn24" aria-pressed="'+(dest.fmt===24)+'">24h</button>'+
+          '<button class="tb'+(dest.fmt===12?' on':'')+' c-btn12" aria-pressed="'+(dest.fmt===12)+'">12h</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>'+
+
+    '<div class="fld" style="margin-top:8px">'+
+      '<label class="flabel">Timezone (UTC/GMT)</label>'+
+      '<div class="outbox c-tz" aria-live="polite">\u2014</div>'+
+    '</div>';
+
+  var col=document.getElementById("dest-col");
+  var slot=document.getElementById("add-slot");
+  col.insertBefore(card,slot);
+
+  /* dropdown */
+  var inp=card.querySelector(".c-city-inp"), drop=card.querySelector(".c-city-drop");
+  makeDropdown(inp,drop,function(city){
+    dest.tz=city.t; convertCard(dest); saveState();
+  });
+  if(saved&&saved.cityName) inp.value=saved.cityName;
+
+  /* format toggle */
+  var b24=card.querySelector(".c-btn24"), b12=card.querySelector(".c-btn12");
+  b24.addEventListener("click",function(){
+    dest.fmt=24; b24.classList.add("on"); b24.setAttribute("aria-pressed","true");
+    b12.classList.remove("on"); b12.setAttribute("aria-pressed","false");
+    convertCard(dest); saveState();
+  });
+  b12.addEventListener("click",function(){
+    dest.fmt=12; b12.classList.add("on"); b12.setAttribute("aria-pressed","true");
+    b24.classList.remove("on"); b24.setAttribute("aria-pressed","false");
+    convertCard(dest); saveState();
+  });
+
+  /* copy button */
+  card.querySelector(".copy-btn").addEventListener("click",function(){
+    var text=buildCopyText(dest);
+    var btn=this;
+    var ta=document.createElement("textarea");
+    ta.value=text; ta.style.cssText="position:fixed;top:-9999px;left:-9999px;opacity:0;";
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    try{ document.execCommand("copy"); }catch(e){}
+    document.body.removeChild(ta);
+    flashBtn(btn,"✓ copied");
+  });
+
+  /* remove button */
+  if(!permanent){
+    card.querySelector(".remove-btn").addEventListener("click",function(){
+      col.removeChild(card);
+      dests=dests.filter(function(d){return d.num!==num;});
+      saveState();
+    });
+  }
+
+  if(!saved) setTimeout(function(){ inp.focus(); },50);
+  return dest;
+}
+
+/* ═══════════════════════════════════════════════
+   ADD SLOT
+═══════════════════════════════════════════════ */
+document.getElementById("add-slot").addEventListener("click",function(){
+  createCard(null,false); saveState();
+});
+
+/* ═══════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════ */
+(function(){
+  var saved=loadState();
+
+  if(saved){
+    document.getElementById("in-date").value=saved.date||"";
+    document.getElementById("in-time").value=saved.time||"";
+    if(saved.originTz){
+      fromTz=saved.originTz;
+      document.getElementById("from-inp").value=saved.originCity||"";
+    }
+    if(saved.destinations&&saved.destinations.length){
+      saved.destinations.forEach(function(ds,i){ createCard(ds, i===0||ds.permanent); });
+    } else {
+      createCard(null,true);
+    }
+    convertAll();
+  } else {
+    var now=new Date();
+    document.getElementById("in-date").value=now.toISOString().split("T")[0];
+    document.getElementById("in-time").value=
+      String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");
+    fromTz=Intl.DateTimeFormat().resolvedOptions().timeZone;
+    var m=CITIES.find(function(x){return x.t===fromTz;});
+    if(m) setFrom(m); else document.getElementById("from-inp").value=fromTz;
+    createCard(null,true);
+  }
+})();
+</script>
+</body>
+</html>
