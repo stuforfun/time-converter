@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="google" content="notranslate">
+<meta http-equiv="Content-Language" content="en">
 <title>Time Converter</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
 <style>
@@ -182,7 +183,14 @@ input.invalid,.outbox.invalid{border-color:var(--errbdr);background:var(--errbg)
   font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.08em;
   padding:0 11px;cursor:pointer;color:var(--ink4);transition:background .15s;}
 .tb:last-child{border-right:none;}
-.tb.on{background:var(--blue);color:#fff;}
+.tb.on{background:var(--ink3);color:#fff;}
+/* dest-card — override all blue interactive states to red */
+.dest-card input[type=text]:focus{border-color:var(--red);}
+.dest-card .drop{border-color:var(--redbdr);}
+.dest-card .drow:hover,.dest-card .drow.hi{background:var(--redbg);}
+.dest-card .dhl{color:var(--red);}
+.dest-card .outbox.live,.dest-card .outbox.live-an{border-bottom-color:var(--red);}
+.dest-card .outbox.flash{animation:flash-dest .35s ease;}
 
 /* ── ADD SLOT ── */
 .add-slot{border:1.5px dashed var(--bdr);background:transparent;padding:14px;
@@ -241,8 +249,8 @@ input.invalid,.outbox.invalid{border-color:var(--errbdr);background:var(--errbg)
                 <input type="time" id="in-time" step="60" tabindex="0">
               </div>
               <div class="tog" role="group" aria-label="Origin time format">
-                <button class="tb on o-btn12" id="o-btn12" aria-pressed="true">12h</button>
-                <button class="tb o-btn24" id="o-btn24" aria-pressed="false">24h</button>
+                <button class="tb o-btn12" id="o-btn12" aria-pressed="false">12h</button>
+                <button class="tb on o-btn24" id="o-btn24" aria-pressed="true">24h</button>
               </div>
             </div>
             <div class="err-msg" id="err-time">Please enter a time.</div>
@@ -1362,7 +1370,7 @@ var CITIES = [
 ═══════════════════════════════════════════════ */
 var MON      = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 var fromTz   = Intl.DateTimeFormat().resolvedOptions().timeZone;
-var fromFmt  = 12; // origin time format: 12 or 24
+var fromFmt  = 24; // origin time format: 12 or 24
 var nextNum  = 1;
 var dests    = [];   // [{num, tz, fmt, permanent}]
 
@@ -1843,8 +1851,8 @@ function createCard(saved, permanent){
         '</div>'+
         '<div class="now-cell">'+
           '<div class="tog" role="group" aria-label="Time format">'+
-            '<button class="tb'+(dest.fmt===24?' on':'')+' c-btn24" aria-pressed="'+(dest.fmt===24)+'">24h</button>'+
             '<button class="tb'+(dest.fmt===12?' on':'')+' c-btn12" aria-pressed="'+(dest.fmt===12)+'">12h</button>'+
+            '<button class="tb'+(dest.fmt===24?' on':'')+' c-btn24" aria-pressed="'+(dest.fmt===24)+'">24h</button>'+
           '</div>'+
         '</div>'+
       '</div>'+
@@ -1891,7 +1899,7 @@ function createCard(saved, permanent){
     });
   }
 
-  if(!saved) setTimeout(function(){ inp.focus(); },50);
+  if(!saved) { /* no auto-focus */ }
   return dest;
 }
 
