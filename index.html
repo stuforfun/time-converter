@@ -11,8 +11,7 @@
   --ink:#1a1510; --ink2:#3a4560; --ink3:#6b5f4e; --ink4:#9e8f7a;
   --blue:#1a3a5c; --blue2:#2a5480; --bluebg:#d6e4f0; --bluebdr:#7a9abf;
   --red:#7a1c1c; --redbdr:#c08090; --redbg:#fff8f8; --redtxt:#b07080;
-  --bdr:#c8b99a; --bdr2:#dfd3be; --outbg:#f0f4f8;
-  --ok:#1a5c2a; --okbg:#e8f5ec; --okbdr:#7abf8a;
+  --bdr:#c8b99a; --bdr2:#dfd3be; --outbg:#fdfbf7;
   --err:#8b1a1a; --errbg:#fdf0f0; --errbdr:#d98080;
   --warn:#7a5c10; --warnbg:#fdf8e8;
 }
@@ -28,44 +27,30 @@ h1{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,5vw,2.8rem);font-
 
 
 /* ── LAYOUT ── */
-/* Mobile-first: stacked column */
-.layout{display:flex;flex-direction:column;gap:12px;}
-.conn-desktop{display:none;} /* shown by media query below */
-.conn-mobile{
-  display:flex;align-items:center;justify-content:center;
-  font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;
-  color:var(--ink4);gap:8px;padding:4px 0;
-}
-.conn-mobile::before,.conn-mobile::after{content:'';flex:1;height:1px;background:var(--bdr2);}
-/* Desktop: 3-column grid */
+.layout{display:flex;flex-direction:column;gap:24px;}
 @media(min-width:740px){
-  .layout{display:grid;grid-template-columns:290px 48px 1fr;align-items:start;gap:0 0;}
-  .conn-mobile{display:none;}
-  .conn-desktop{
-    display:flex;align-items:flex-start;justify-content:center;
-    padding-top:26px;color:var(--ink4);font-size:.75rem;
-  }
+  .layout{display:grid;grid-template-columns:1fr 1fr;align-items:start;gap:24px;}
 }
 .dest-col{display:flex;flex-direction:column;gap:10px;}
+.origin-card{border:1.5px solid var(--bluebdr);box-shadow:3px 3px 0 var(--bg2);}
 
 /* ── CARDS ── */
 .origin-card,.dest-card{
   background:var(--wh);padding:22px 20px;position:relative;overflow:hidden;
 }
-.origin-card{border:1.5px solid var(--bluebdr);box-shadow:3px 3px 0 var(--bg2);align-self:start;}
 .origin-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--blue);}
 .dest-card{border:1.5px solid var(--redbdr);box-shadow:3px 3px 0 var(--bg2);}
 .dest-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--red);}
 
 /* card header row */
 .card-actions{position:absolute;top:9px;right:10px;display:flex;gap:5px;align-items:center;}
-.copy-btn,.remove-btn{
+.remove-btn{
   background:none;font-family:'DM Mono',monospace;
   font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;
-  padding:3px 8px;cursor:pointer;transition:all .15s;border:1px solid var(--bdr2);color:var(--ink4);
+  padding:8px 16px;cursor:pointer;transition:all .15s;
+  border:1px solid var(--bdr2);color:var(--ink4);
+  min-width:72px;min-height:36px;
 }
-.copy-btn:hover{border-color:var(--blue);color:var(--blue);}
-.copy-btn.copied{border-color:var(--ok);color:var(--ok);}
 .remove-btn:hover{border-color:var(--red);color:var(--red);}
 
 .ptag{font-size:.57rem;letter-spacing:.25em;text-transform:uppercase;color:var(--ink4);display:flex;align-items:center;gap:6px;margin-bottom:16px;}
@@ -77,42 +62,106 @@ h1{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,5vw,2.8rem);font-
 .fld{margin-bottom:13px;}
 .fld:last-child{margin-bottom:0;}
 .flabel{display:block;font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ink3);margin-bottom:5px;}
-.flabel-row{display:flex;align-items:baseline;gap:0;margin-bottom:5px;}
-.flabel-row .flabel{margin-bottom:0;}
-.now-link{color:var(--blue2);border-bottom:1px dashed var(--blue2);cursor:pointer;margin-left:8px;font-size:.52rem;letter-spacing:.12em;text-transform:uppercase;}
+
+
 
 input[type=date],input[type=text],input[type=time]{
   width:100%;background:var(--bg);border:1.5px solid var(--bdr2);border-bottom:2px solid var(--bdr);
   color:var(--ink);font-family:'DM Mono',monospace;font-size:.88rem;
   padding:9px 10px;outline:none;border-radius:0;-webkit-appearance:none;appearance:none;
-  transition:border-color .18s,background .18s;
+  transition:border-color .18s,background .18s;box-sizing:border-box;height:40px;
 }
 input:focus{border-color:var(--blue);background:var(--wh);}
 input::placeholder{color:var(--ink4);font-size:.8rem;}
-input[type=time]::-webkit-datetime-edit-ampm-field{display:none;}
-input[type=time]::-webkit-calendar-picker-indicator{opacity:.3;width:13px;}
 input[type=date]::-webkit-calendar-picker-indicator{opacity:.3;cursor:pointer;}
-input.invalid{border-color:var(--errbdr);background:var(--errbg);}
+/* hide browser's empty date edit field so placeholder text shows through */
+input[type=date].empty:not(:focus)::-webkit-datetime-edit{ color:transparent; }
+input.invalid,.outbox.invalid{border-color:var(--errbdr);background:var(--errbg);}
 .err-msg{font-size:.6rem;color:var(--err);margin-top:4px;display:none;}
 .err-msg.show{display:block;}
 
-/* date+time row on desktop */
-.dt-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;min-width:0;}
-.dt-row>div{min-width:0;}
-.dt-row input{min-width:0;width:100%;}
+/* ── DATE + TIME + SET NOW grid ── */
+.dt-setnow-grid{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start;margin-bottom:13px;}
+.dt-fields{min-width:0;}
+.setnow-cell{display:flex;align-items:flex-start;padding-top:15px;}
+.now-link{
+  display:inline-flex;align-items:center;justify-content:center;
+  background:none;border:1.5px solid var(--bdr);border-radius:0;
+  font-family:'DM Mono',monospace;font-size:.52rem;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--ink4);width:72px;height:108px;
+  cursor:pointer;transition:border-color .15s,color .15s;
+  box-sizing:border-box;text-align:center;line-height:1.6;
+  word-break:break-word;padding:8px 4px;
+}
+.now-link:hover{border-color:var(--blue);color:var(--blue);}
 
-/* output boxes */
-.outbox{
+/* shared time-input row inside destination cards */
+.dt-row{display:grid;grid-template-columns:1fr auto;gap:10px;min-width:0;align-items:end;}
+.dt-row>div{min-width:0;}
+.dt-row input,.dt-row .outbox{min-width:0;width:100%;box-sizing:border-box;}
+.now-cell{display:flex;align-items:flex-end;}
+
+/* ── OUTPUT / DISPLAY BOXES — unified ── */
+.outbox,
+.date-display,
+.time-display{
   background:var(--bg);border:1.5px solid var(--bdr2);border-bottom:2px solid var(--bdr);
   font-family:'DM Mono',monospace;font-size:.88rem;padding:9px 10px;
-  min-height:40px;display:flex;align-items:center;color:var(--ink4);
+  height:40px;display:flex;align-items:center;color:var(--ink4);box-sizing:border-box;
 }
-.outbox.live{background:var(--outbg);color:var(--ink2);border-color:var(--bluebdr);border-left:3px solid var(--red);}
+/* has a real value */
+.outbox.live,
+.date-display.has-value,
+.time-display.has-value{
+  background:var(--outbg);color:var(--ink);
+  border-color:var(--bdr2);border-bottom:2px solid var(--blue);
+}
+/* flash on update */
 @keyframes flash{0%{background:var(--bluebg);}100%{background:var(--outbg);}}
-.outbox.flash{animation:flash .4s ease;}
+.outbox.flash,
+.date-display.flash,
+.time-display.flash{animation:flash .35s ease;}
 
-/* result summary row */
-.result-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+/* date-display is absolutely positioned inside date-wrap */
+.date-wrap{position:relative;height:40px;}
+.date-wrap input[type=date]{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  z-index:2;opacity:0;cursor:pointer;box-sizing:border-box;
+  background:transparent;border:none;pointer-events:none;
+}
+.date-wrap input[type=date].picking{
+  opacity:1;pointer-events:auto;
+  background:var(--wh);color:var(--ink);
+  border:1.5px solid var(--blue);border-bottom:2px solid var(--blue);
+  padding:9px 10px;font-family:'DM Mono',monospace;font-size:.88rem;
+}
+.date-display{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  pointer-events:none;z-index:1;
+}
+.date-wrap input[type=date].picking ~ .date-display{opacity:0;}
+
+/* time-display is absolutely positioned inside time-wrap */
+.time-wrap{position:relative;height:40px;}
+.time-wrap input[type=time]{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  z-index:2;opacity:0;cursor:text;box-sizing:border-box;
+  background:transparent;border:none;
+}
+.time-wrap input[type=time]:focus{
+  opacity:1;z-index:3;
+  background:var(--wh);color:var(--ink);
+  border:1.5px solid var(--blue);border-bottom:2px solid var(--blue);
+  padding:9px 10px;font-family:'DM Mono',monospace;font-size:.88rem;
+}
+.time-display{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  pointer-events:none;z-index:1;
+}
+.time-wrap:focus-within .time-display{opacity:0;}
+
+
+
 
 /* ── DROPDOWN ── */
 .cwrap{position:relative;}
@@ -128,7 +177,7 @@ input.invalid{border-color:var(--errbdr);background:var(--errbg);}
 .dhl{color:var(--blue);font-weight:600;}
 
 /* ── FORMAT TOGGLE ── */
-.tog{display:inline-flex;border:1.5px solid var(--bdr);overflow:hidden;height:40px;align-self:end;}
+.tog{display:inline-flex;border:1.5px solid var(--bdr);overflow:hidden;height:40px;align-self:end;box-sizing:border-box;}
 .tb{background:none;border:none;border-right:1.5px solid var(--bdr);
   font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.08em;
   padding:0 11px;cursor:pointer;color:var(--ink4);transition:background .15s;}
@@ -166,7 +215,7 @@ input.invalid{border-color:var(--errbdr);background:var(--errbg);}
       <div class="fld">
         <label class="flabel" for="from-inp">City</label>
         <div class="cwrap">
-          <input type="text" id="from-inp" placeholder="e.g. Tokyo, Shanghai…" autocomplete="off"
+          <input type="text" id="from-inp" placeholder="e.g. Tokyo, London, Dubai…" autocomplete="off"
             role="combobox" aria-autocomplete="list" aria-expanded="false"
             aria-controls="from-drop" aria-haspopup="listbox">
           <div class="drop" id="from-drop" role="listbox" aria-label="City suggestions"></div>
@@ -174,28 +223,44 @@ input.invalid{border-color:var(--errbdr);background:var(--errbg);}
         <div class="err-msg" id="err-city">Please select a city from the list.</div>
       </div>
 
-      <div class="fld">
-        <div class="dt-row">
+      <div class="fld dt-setnow-grid">
+        <div class="dt-fields">
           <div>
             <label class="flabel" for="in-date">Date</label>
-            <input type="date" id="in-date">
+            <div class="date-wrap">
+              <div class="date-display outbox" id="date-display">e.g. Mar 1, 2026</div>
+              <input type="date" id="in-date">
+            </div>
             <div class="err-msg" id="err-date">Please enter a valid date.</div>
           </div>
-          <div>
-            <div class="flabel-row">
-              <label class="flabel" for="in-time">Time (24h)</label>
-              <span class="now-link" id="now-btn">set now</span>
+          <div style="margin-top:13px;">
+            <label class="flabel" for="in-time">Time</label>
+            <div class="dt-row">
+              <div class="time-wrap">
+                <div class="time-display outbox" id="time-display">e.g. 09:00 AM</div>
+                <input type="time" id="in-time" step="60" tabindex="0">
+              </div>
+              <div class="tog" role="group" aria-label="Origin time format">
+                <button class="tb on o-btn12" id="o-btn12" aria-pressed="true">12h</button>
+                <button class="tb o-btn24" id="o-btn24" aria-pressed="false">24h</button>
+              </div>
             </div>
-            <input type="time" id="in-time" step="60">
             <div class="err-msg" id="err-time">Please enter a time.</div>
           </div>
         </div>
+        <div class="setnow-cell">
+          <span class="now-link" id="now-btn">set now</span>
+        </div>
+      </div>
+
+      <div class="fld">
+        <label class="flabel">Timezone (UTC/GMT)</label>
+        <div class="outbox" id="origin-tz">e.g. UTC+09:00</div>
       </div>
     </div>
 
-    <!-- ── CONNECTOR ── -->
-    <div class="conn-desktop" aria-hidden="true">▶</div>
-    <div class="conn-mobile" aria-hidden="true">converts to</div>
+
+
 
     <!-- ── DESTINATIONS ── -->
     <div class="dest-col" id="dest-col">
@@ -367,10 +432,12 @@ var CITIES = [
   {c:"Augusta",n:"USA",t:"America/New_York"},
   {c:"Montgomery",n:"USA",t:"America/New_York"},
   {c:"Huntsville",n:"USA",t:"America/New_York"},
+  {c:"Birmingham",n:"UK",t:"Europe/London"},
   {c:"Birmingham",n:"USA",t:"America/New_York"},
   {c:"Jackson",n:"USA",t:"America/New_York"},
   {c:"Tallahassee",n:"USA",t:"America/New_York"},
   {c:"Fort Lauderdale",n:"USA",t:"America/New_York"},
+  {c:"St Petersburg",n:"Russia",t:"Europe/Moscow"},
   {c:"St Petersburg",n:"USA",t:"America/New_York"},
   {c:"Vancouver",n:"Canada",t:"America/Vancouver"},
   {c:"Victoria",n:"Canada",t:"America/Vancouver"},
@@ -392,6 +459,7 @@ var CITIES = [
   {c:"Montreal",n:"Canada",t:"America/Toronto"},
   {c:"Quebec City",n:"Canada",t:"America/Toronto"},
   {c:"Hamilton",n:"Canada",t:"America/Toronto"},
+  {c:"London",n:"UK",t:"Europe/London"},
   {c:"London",n:"Canada",t:"America/Toronto"},
   {c:"Windsor",n:"Canada",t:"America/Toronto"},
   {c:"Mississauga",n:"Canada",t:"America/Toronto"},
@@ -447,6 +515,7 @@ var CITIES = [
   {c:"Port-au-Prince",n:"Haiti",t:"America/Port-au-Prince"},
   {c:"Cap-Haitien",n:"Haiti",t:"America/Port-au-Prince"},
   {c:"Santo Domingo",n:"Dominican Rep.",t:"America/Santo_Domingo"},
+  {c:"Santiago",n:"Chile",t:"America/Santiago"},
   {c:"Santiago",n:"Dominican Rep.",t:"America/Santo_Domingo"},
   {c:"San Juan",n:"Puerto Rico",t:"America/Puerto_Rico"},
   {c:"Nassau",n:"Bahamas",t:"America/Nassau"},
@@ -475,6 +544,7 @@ var CITIES = [
   {c:"The Valley",n:"Anguilla",t:"America/Anguilla"},
   {c:"Caracas",n:"Venezuela",t:"America/Caracas"},
   {c:"Maracaibo",n:"Venezuela",t:"America/Caracas"},
+  {c:"Valencia",n:"Spain",t:"Europe/Madrid"},
   {c:"Valencia",n:"Venezuela",t:"America/Caracas"},
   {c:"Bogota",n:"Colombia",t:"America/Bogota"},
   {c:"Medellin",n:"Colombia",t:"America/Bogota"},
@@ -491,7 +561,6 @@ var CITIES = [
   {c:"La Paz",n:"Bolivia",t:"America/La_Paz"},
   {c:"Santa Cruz",n:"Bolivia",t:"America/La_Paz"},
   {c:"Cochabamba",n:"Bolivia",t:"America/La_Paz"},
-  {c:"Santiago",n:"Chile",t:"America/Santiago"},
   {c:"Valparaiso",n:"Chile",t:"America/Santiago"},
   {c:"Concepcion",n:"Chile",t:"America/Santiago"},
   {c:"Antofagasta",n:"Chile",t:"America/Santiago"},
@@ -549,8 +618,6 @@ var CITIES = [
   {c:"Funchal",n:"Madeira",t:"Atlantic/Madeira"},
   {c:"Las Palmas",n:"Canary Islands",t:"Atlantic/Canary"},
   {c:"Santa Cruz de Tenerife",n:"Canary Islands",t:"Atlantic/Canary"},
-  {c:"London",n:"UK",t:"Europe/London"},
-  {c:"Birmingham",n:"UK",t:"Europe/London"},
   {c:"Manchester",n:"UK",t:"Europe/London"},
   {c:"Glasgow",n:"UK",t:"Europe/London"},
   {c:"Edinburgh",n:"UK",t:"Europe/London"},
@@ -577,7 +644,6 @@ var CITIES = [
   {c:"Faro",n:"Portugal",t:"Europe/Lisbon"},
   {c:"Madrid",n:"Spain",t:"Europe/Madrid"},
   {c:"Barcelona",n:"Spain",t:"Europe/Madrid"},
-  {c:"Valencia",n:"Spain",t:"Europe/Madrid"},
   {c:"Seville",n:"Spain",t:"Europe/Madrid"},
   {c:"Zaragoza",n:"Spain",t:"Europe/Madrid"},
   {c:"Malaga",n:"Spain",t:"Europe/Madrid"},
@@ -772,7 +838,6 @@ var CITIES = [
   {c:"Chisinau",n:"Moldova",t:"Europe/Chisinau"},
   {c:"Kaliningrad",n:"Russia",t:"Europe/Kaliningrad"},
   {c:"Moscow",n:"Russia",t:"Europe/Moscow"},
-  {c:"St Petersburg",n:"Russia",t:"Europe/Moscow"},
   {c:"Nizhny Novgorod",n:"Russia",t:"Europe/Moscow"},
   {c:"Kazan",n:"Russia",t:"Europe/Moscow"},
   {c:"Samara",n:"Russia",t:"Europe/Samara"},
@@ -823,6 +888,7 @@ var CITIES = [
   {c:"Ganja",n:"Azerbaijan",t:"Asia/Baku"},
   {c:"Sumqayit",n:"Azerbaijan",t:"Asia/Baku"},
   {c:"Beirut",n:"Lebanon",t:"Asia/Beirut"},
+  {c:"Tripoli",n:"Libya",t:"Africa/Tripoli"},
   {c:"Tripoli",n:"Lebanon",t:"Asia/Beirut"},
   {c:"Damascus",n:"Syria",t:"Asia/Damascus"},
   {c:"Aleppo",n:"Syria",t:"Asia/Damascus"},
@@ -885,6 +951,7 @@ var CITIES = [
   {c:"Gujranwala",n:"Pakistan",t:"Asia/Karachi"},
   {c:"Peshawar",n:"Pakistan",t:"Asia/Karachi"},
   {c:"Quetta",n:"Pakistan",t:"Asia/Karachi"},
+  {c:"Hyderabad",n:"India",t:"Asia/Kolkata"},
   {c:"Hyderabad",n:"Pakistan",t:"Asia/Karachi"},
   {c:"Tashkent",n:"Uzbekistan",t:"Asia/Tashkent"},
   {c:"Samarkand",n:"Uzbekistan",t:"Asia/Samarkand"},
@@ -908,7 +975,6 @@ var CITIES = [
   {c:"Delhi",n:"India",t:"Asia/Kolkata"},
   {c:"Mumbai",n:"India",t:"Asia/Kolkata"},
   {c:"Bangalore",n:"India",t:"Asia/Kolkata"},
-  {c:"Hyderabad",n:"India",t:"Asia/Kolkata"},
   {c:"Chennai",n:"India",t:"Asia/Kolkata"},
   {c:"Kolkata",n:"India",t:"Asia/Kolkata"},
   {c:"Ahmedabad",n:"India",t:"Asia/Kolkata"},
@@ -1118,7 +1184,6 @@ var CITIES = [
   {c:"Tunis",n:"Tunisia",t:"Africa/Tunis"},
   {c:"Sfax",n:"Tunisia",t:"Africa/Tunis"},
   {c:"Sousse",n:"Tunisia",t:"Africa/Tunis"},
-  {c:"Tripoli",n:"Libya",t:"Africa/Tripoli"},
   {c:"Benghazi",n:"Libya",t:"Africa/Tripoli"},
   {c:"Cairo",n:"Egypt",t:"Africa/Cairo"},
   {c:"Alexandria",n:"Egypt",t:"Africa/Cairo"},
@@ -1297,8 +1362,24 @@ var CITIES = [
 ═══════════════════════════════════════════════ */
 var MON      = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 var fromTz   = Intl.DateTimeFormat().resolvedOptions().timeZone;
+var fromFmt  = 12; // origin time format: 12 or 24
 var nextNum  = 1;
 var dests    = [];   // [{num, tz, fmt, permanent}]
+
+function updateDestLabels(){
+  var cards = document.querySelectorAll(".dest-card");
+  var count = cards.length;
+  cards.forEach(function(card, i){
+    var ptag = card.querySelector(".ptag");
+    if(!ptag) return;
+    var dot = ptag.querySelector(".pdot");
+    ptag.innerHTML = "";
+    if(dot) ptag.appendChild(dot);
+    var span = document.createElement("span");
+    span.textContent = count === 1 ? "Destination" : "Destination " + (i + 1);
+    ptag.appendChild(span);
+  });
+}
 var STORAGE  = "tc-v2";
 var _dropId  = 0;
 
@@ -1331,26 +1412,34 @@ function wallToUTC(year,month,day,h,m,tz){
 /* Score a city match against query (higher = better) */
 function scoreCity(city, q){
   var cn=norm(city.c), nn=norm(city.n), full=cn+", "+nn;
-  if(cn===q||full===q)          return 100;
-  if(cn.startsWith(q))          return 80;
-  if(full.startsWith(q))        return 70;
-  if(cn.includes(q))            return 50;
-  if(nn.startsWith(q))          return 40;
-  if(nn.includes(q))            return 20;
-  return 0;
+  var base=0;
+  if(cn===q||full===q)          base=100;
+  else if(cn.startsWith(q))     base=80;
+  else if(full.startsWith(q))   base=70;
+  else if(cn.includes(q))       base=50;
+  else if(nn.startsWith(q))     base=40;
+  else if(nn.includes(q))       base=20;
+  if(base===0) return 0;
+  // Tiebreaker: reward closer matches (query covers more of city name)
+  // e.g. 'lon' vs 'London'(6) = 0.50, vs 'Long Beach'(10) = 0.30 → London wins
+  var ratio = q.length / cn.length;
+  return base + ratio;
 }
 
 function searchCities(q){
   if(!q) return CITIES.slice(0,16);
-  // check alias
   var alias = ALIASES[norm(q)];
   var nq = norm(alias||q);
   var scored = [];
-  CITIES.forEach(function(c){
+  CITIES.forEach(function(c,idx){
     var s = scoreCity(c, nq);
-    if(s>0) scored.push({city:c, score:s});
+    if(s>0) scored.push({city:c, score:s, idx:idx});
   });
-  scored.sort(function(a,b){return b.score-a.score;});
+  // Sort by score desc, then by original array index asc (earlier = more prominent)
+  scored.sort(function(a,b){
+    if(b.score !== a.score) return b.score - a.score;
+    return a.idx - b.idx;
+  });
   return scored.slice(0,14).map(function(x){return x.city;});
 }
 
@@ -1445,28 +1534,140 @@ function makeDropdown(inp, drop, onSelect){
 var setFrom = makeDropdown(
   document.getElementById("from-inp"),
   document.getElementById("from-drop"),
-  function(city){ fromTz=city.t; clearErr("err-city"); convertAll(); saveState(); }
+  function(city){
+    fromTz=city.t;
+    var otz=document.getElementById("origin-tz");
+    if(otz){
+      otz.textContent=utcLabel(city.t);
+      otz.classList.add("live");
+      otz.classList.remove("flash"); void otz.offsetWidth; otz.classList.add("flash");
+    }
+    clearErr("err-city"); convertAll(); saveState();
+  }
 );
 
-["in-date","in-time"].forEach(function(id){
-  document.getElementById(id).addEventListener("change",function(){ clearAll(); convertAll(); saveState(); });
+/* keep .empty class in sync so placeholder shows on blank date/time */
+/* reset origin-tz when city is cleared */
+document.getElementById("from-inp").addEventListener("input",function(){
+  if(!this.value.trim()){
+    var otz=document.getElementById("origin-tz");
+    if(otz){ otz.textContent="e.g. UTC+09:00"; otz.classList.remove("live","flash"); }
+    fromTz=null;
+  }
 });
+
+function syncDateDisplay(){
+  var inp=document.getElementById("in-date");
+  var disp=document.getElementById("date-display");
+  if(!inp||!disp) return;
+  var v=inp.value; // "YYYY-MM-DD"
+  if(!v){
+    disp.textContent="e.g. Mar 1, 2026";
+    disp.classList.remove("has-value");
+  } else {
+    var parts=v.split("-");
+    var d=new Date(+parts[0], +parts[1]-1, +parts[2]);
+    disp.textContent=d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+    disp.classList.add("has-value");
+  }
+}
+
+function syncTimeDisplay(){
+  var inp=document.getElementById("in-time");
+  var disp=document.getElementById("time-display");
+  if(!inp||!disp) return;
+  var v=inp.value; // "HH:MM"
+  if(!v){
+    disp.textContent= fromFmt===24 ? "e.g. 09:00" : "e.g. 09:00 AM";
+    disp.classList.remove("has-value");
+  } else {
+    var parts=v.split(":");
+    var h=parseInt(parts[0],10), m=parts[1];
+    if(fromFmt===24){
+      disp.textContent=String(h).padStart(2,"0")+":"+m;
+    } else {
+      var ampm=h>=12?"PM":"AM";
+      var h12=h%12||12;
+      disp.textContent=h12+":"+m+" "+ampm;
+    }
+    disp.classList.add("has-value");
+  }
+}
+
+function syncEmpty(){
+  ["in-date"].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el) el.classList.toggle("empty", !el.value);
+  });
+}
+
+/* ── DATE PICKER CONTROL ── */
+(function(){
+  var wrap  = document.querySelector(".date-wrap");
+  var inp   = document.getElementById("in-date");
+  var disp  = document.getElementById("date-display");
+  if(!wrap||!inp||!disp) return;
+
+  // clicking the display div opens the native picker
+  disp.style.pointerEvents = "auto";
+  disp.style.cursor = "pointer";
+  disp.addEventListener("click", function(){
+    inp.classList.add("picking");
+    inp.focus();
+    try{ inp.showPicker(); }catch(e){}
+  });
+
+  // as soon as a date is chosen — snap back to display immediately
+  inp.addEventListener("change", function(){
+    inp.classList.remove("picking");
+    inp.blur();
+    syncDateDisplay();
+    clearAll(); convertAll(true); saveState();
+  });
+
+  // also hide if user clicks away without picking
+  inp.addEventListener("blur", function(){
+    inp.classList.remove("picking");
+  });
+})();
+
+/* origin format toggle */
+(function(){
+  var b12=document.getElementById("o-btn12");
+  var b24=document.getElementById("o-btn24");
+  if(!b12||!b24) return;
+  b12.addEventListener("click",function(){
+    fromFmt=12;
+    b12.classList.add("on"); b12.setAttribute("aria-pressed","true");
+    b24.classList.remove("on"); b24.setAttribute("aria-pressed","false");
+    syncTimeDisplay(); saveState();
+  });
+  b24.addEventListener("click",function(){
+    fromFmt=24;
+    b24.classList.add("on"); b24.setAttribute("aria-pressed","true");
+    b12.classList.remove("on"); b12.setAttribute("aria-pressed","false");
+    syncTimeDisplay(); saveState();
+  });
+})();
+
+/* time input listener */
+document.getElementById("in-time").addEventListener("change", function(){
+  syncTimeDisplay(); clearAll(); convertAll(true); saveState();
+});
+document.getElementById("in-time").addEventListener("input", syncTimeDisplay);
 
 document.getElementById("now-btn").onclick=function(){
   var now=new Date();
   document.getElementById("in-date").value=now.toISOString().split("T")[0];
   document.getElementById("in-time").value=
     String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");
-  fromTz=Intl.DateTimeFormat().resolvedOptions().timeZone;
-  var m=CITIES.find(function(x){return x.t===fromTz;});
-  if(m) setFrom(m); else document.getElementById("from-inp").value=fromTz;
-  clearAll(); convertAll(); saveState();
+  clearAll(); convertAll(true); syncDateDisplay(); syncTimeDisplay(); saveState();
 };
 
 /* ═══════════════════════════════════════════════
    VALIDATION
 ═══════════════════════════════════════════════ */
-var ERR_INPUT = {"err-city":"from-inp","err-date":"in-date","err-time":"in-time"};
+var ERR_INPUT = {"err-city":"from-inp","err-date":"date-display","err-time":"time-display"};
 function showErr(id,msg){
   var el=document.getElementById(id);
   if(el){ el.textContent=msg||el.textContent; el.classList.add("show"); }
@@ -1481,16 +1682,23 @@ function clearErr(id){
 }
 function clearAll(){ ["err-city","err-date","err-time"].forEach(clearErr); }
 
-function validateOrigin(){
+function validateOrigin(strict){
   var ok=true;
   if(!fromTz||!document.getElementById("from-inp").value.trim()){
     showErr("err-city"); ok=false;
   }
-  if(!document.getElementById("in-date").value){
-    showErr("err-date"); ok=false;
-  }
-  if(!document.getElementById("in-time").value){
-    showErr("err-time"); ok=false;
+  // Only show date/time errors in strict mode (user explicitly tried to convert)
+  // or when the field was already touched
+  var dateVal=document.getElementById("in-date").value;
+  var timeVal=document.getElementById("in-time").value;
+  if(strict){
+    if(!dateVal){ showErr("err-date"); ok=false; }
+    if(!timeVal){ showErr("err-time"); ok=false; }
+  } else {
+    // soft: only error if one is filled but not the other
+    if(dateVal&&!timeVal){ showErr("err-time"); ok=false; }
+    if(timeVal&&!dateVal){ showErr("err-date"); ok=false; }
+    if(!dateVal||!timeVal) ok=false; // silently block conversion
   }
   return ok;
 }
@@ -1517,52 +1725,68 @@ function convertCard(dest){
   }
   var o=getOrigin();
   if(!dest.tz||!o.year||!o.month||!o.day||!o.tv){
-    [".c-date",".c-time",".c-tz"].forEach(function(s){write(s,"—",false);}); return;
+    write(".c-date","e.g. Mar 1, 2026",false);
+    write(".c-time","e.g. 09:00",false);
+    write(".c-tz",  "e.g. UTC+09:00",false); return;
   }
   var h=parseInt(o.tv.split(":")[0]), m=parseInt(o.tv.split(":")[1]);
   try {
     var utc=wallToUTC(o.year,o.month,o.day,h,m,fromTz), p={};
+    // Always get date parts in 24h first
     new Intl.DateTimeFormat("en-US",{timeZone:dest.tz,year:"numeric",month:"short",day:"numeric",
-      hour:"2-digit",minute:"2-digit",hour12:dest.fmt===12
+      hour:"2-digit",minute:"2-digit",hour12:false
     }).formatToParts(utc).forEach(function(x){p[x.type]=x.value;});
-    var ts=dest.fmt===12
-      ? p.hour+":"+p.minute+" "+(p.dayPeriod||"")
-      : p.hour+":"+p.minute;
+
+    var ts;
+    if(dest.fmt===12){
+      // Separate 12h formatter to reliably get AM/PM
+      var p12={};
+      new Intl.DateTimeFormat("en-US",{timeZone:dest.tz,
+        hour:"numeric",minute:"2-digit",hour12:true
+      }).formatToParts(utc).forEach(function(x){p12[x.type]=x.value;});
+      ts = p12.hour+":"+p12.minute+" "+(p12.dayPeriod||"");
+    } else {
+      ts = p.hour+":"+p.minute;
+    }
     var dateStr=p.month+" "+p.day+", "+p.year;
     write(".c-date", dateStr,          true);
     write(".c-time", ts,               true);
     write(".c-tz",   utcLabel(dest.tz),true);
   } catch(e){
-    [".c-date",".c-time",".c-tz"].forEach(function(s){write(s,"—",false);});
+    write(".c-date","e.g. Mar 1, 2026",false);
+    write(".c-time","e.g. 09:00",false);
+    write(".c-tz",  "e.g. UTC+09:00",false);
   }
 }
 
-function convertAll(){
-  if(!validateOrigin()) return;
+function convertAll(strict){
+  if(!validateOrigin(strict)) return;
   clearAll();
   dests.forEach(convertCard);
+  // flash origin display boxes to signal successful conversion
+  ["date-display","time-display","origin-tz"].forEach(function(id){
+    var el=document.getElementById(id);
+    if(!el||!el.classList.contains("has-value")&&id!=="origin-tz") return;
+    el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash");
+  });
 }
 
-/* ═══════════════════════════════════════════════
-   COPY RESULT
-═══════════════════════════════════════════════ */
-function buildCopyText(dest){
-  var card=document.getElementById("card-"+dest.num); if(!card) return "";
-  var city=card.querySelector(".c-city-inp").value.trim();
-  var date=card.querySelector(".c-date").textContent;
-  var time=card.querySelector(".c-time").textContent;
-  var tz  =card.querySelector(".c-tz").textContent;
-  if(!city)          return "No city selected yet.";
-  if(date==="—")     return city + " — set an origin time to convert.";
-  return city+"\n"+date+" · "+time+"\n"+tz;
-}
 
-function flashBtn(btn, msg){
-  var orig=btn.textContent;
-  btn.textContent=msg; btn.classList.add("copied");
-  setTimeout(function(){ btn.textContent=orig; btn.classList.remove("copied"); },1800);
-}
 
+function buildState(){
+  return {
+    cityName: document.getElementById("from-inp").value,
+    tz:       fromTz,
+    fmt:      fromFmt,
+    date:     document.getElementById("in-date").value,
+    time:     document.getElementById("in-time").value,
+    dests:    dests.map(function(d){
+      var card=document.getElementById("card-"+d.num);
+      var city=card?card.querySelector(".c-city-inp").value:"";
+      return {tz:d.tz, fmt:d.fmt, cityName:city, permanent:d.permanent};
+    })
+  };
+}
 
 function saveState(){
   try{ localStorage.setItem(STORAGE,JSON.stringify(buildState())); }catch(e){}
@@ -1585,10 +1809,9 @@ function createCard(saved, permanent){
   card.className="dest-card"; card.id="card-"+num;
   var dropId="drop-d-"+num;
 
-  var actionBtns=
+  var actionBtns= permanent ? '' :
     '<div class="card-actions">'+
-    '<button class="copy-btn" aria-label="Copy result for destination '+num+'">copy</button>'+
-    (permanent?'':'<button class="remove-btn" aria-label="Remove destination '+num+'">remove</button>')+
+    '<button class="remove-btn" aria-label="Remove destination '+num+'">remove</button>'+
     '</div>';
 
   card.innerHTML=
@@ -1609,33 +1832,33 @@ function createCard(saved, permanent){
 
     '<div class="fld">'+
       '<label class="flabel">Date</label>'+
-      '<div class="outbox c-date" aria-live="polite">\u2014</div>'+
+      '<div class="outbox c-date" aria-live="polite">e.g. Mar 1, 2026</div>'+
     '</div>'+
 
-    '<div class="result-row">'+
-      '<div>'+
-        '<label class="flabel">Time</label>'+
-        '<div class="outbox c-time" aria-live="polite">\u2014</div>'+
-      '</div>'+
-      '<div>'+
-        '<div class="flabel-row">'+
-          '<label class="flabel">Format</label>'+
+    '<div class="fld">'+
+      '<div class="dt-row">'+
+        '<div>'+
+          '<label class="flabel">Time</label>'+
+          '<div class="outbox c-time" aria-live="polite">e.g. 09:00</div>'+
         '</div>'+
-        '<div class="tog" role="group" aria-label="Time format">'+
-          '<button class="tb'+(dest.fmt===24?' on':'')+' c-btn24" aria-pressed="'+(dest.fmt===24)+'">24h</button>'+
-          '<button class="tb'+(dest.fmt===12?' on':'')+' c-btn12" aria-pressed="'+(dest.fmt===12)+'">12h</button>'+
+        '<div class="now-cell">'+
+          '<div class="tog" role="group" aria-label="Time format">'+
+            '<button class="tb'+(dest.fmt===24?' on':'')+' c-btn24" aria-pressed="'+(dest.fmt===24)+'">24h</button>'+
+            '<button class="tb'+(dest.fmt===12?' on':'')+' c-btn12" aria-pressed="'+(dest.fmt===12)+'">12h</button>'+
+          '</div>'+
         '</div>'+
       '</div>'+
     '</div>'+
 
-    '<div class="fld" style="margin-top:8px">'+
+    '<div class="fld">'+
       '<label class="flabel">Timezone (UTC/GMT)</label>'+
-      '<div class="outbox c-tz" aria-live="polite">\u2014</div>'+
+      '<div class="outbox c-tz" aria-live="polite">e.g. UTC+09:00</div>'+
     '</div>';
 
   var col=document.getElementById("dest-col");
   var slot=document.getElementById("add-slot");
   col.insertBefore(card,slot);
+  updateDestLabels();
 
   /* dropdown */
   var inp=card.querySelector(".c-city-inp"), drop=card.querySelector(".c-city-drop");
@@ -1657,23 +1880,13 @@ function createCard(saved, permanent){
     convertCard(dest); saveState();
   });
 
-  /* copy button */
-  card.querySelector(".copy-btn").addEventListener("click",function(){
-    var text=buildCopyText(dest);
-    var btn=this;
-    var ta=document.createElement("textarea");
-    ta.value=text; ta.style.cssText="position:fixed;top:-9999px;left:-9999px;opacity:0;";
-    document.body.appendChild(ta); ta.focus(); ta.select();
-    try{ document.execCommand("copy"); }catch(e){}
-    document.body.removeChild(ta);
-    flashBtn(btn,"✓ copied");
-  });
 
   /* remove button */
   if(!permanent){
     card.querySelector(".remove-btn").addEventListener("click",function(){
       col.removeChild(card);
       dests=dests.filter(function(d){return d.num!==num;});
+      updateDestLabels();
       saveState();
     });
   }
@@ -1693,31 +1906,9 @@ document.getElementById("add-slot").addEventListener("click",function(){
    INIT
 ═══════════════════════════════════════════════ */
 (function(){
-  var saved=loadState();
-
-  if(saved){
-    document.getElementById("in-date").value=saved.date||"";
-    document.getElementById("in-time").value=saved.time||"";
-    if(saved.originTz){
-      fromTz=saved.originTz;
-      document.getElementById("from-inp").value=saved.originCity||"";
-    }
-    if(saved.destinations&&saved.destinations.length){
-      saved.destinations.forEach(function(ds,i){ createCard(ds, i===0||ds.permanent); });
-    } else {
-      createCard(null,true);
-    }
-    convertAll();
-  } else {
-    var now=new Date();
-    document.getElementById("in-date").value=now.toISOString().split("T")[0];
-    document.getElementById("in-time").value=
-      String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");
-    fromTz=Intl.DateTimeFormat().resolvedOptions().timeZone;
-    var m=CITIES.find(function(x){return x.t===fromTz;});
-    if(m) setFrom(m); else document.getElementById("from-inp").value=fromTz;
-    createCard(null,true);
-  }
+  try{ localStorage.removeItem(STORAGE); }catch(e){}
+  createCard(null, true);
+  syncEmpty(); syncDateDisplay(); syncTimeDisplay();
 })();
 </script>
 </body>
