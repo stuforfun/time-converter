@@ -1916,9 +1916,25 @@ document.getElementById("add-slot").addEventListener("click",function(){
    INIT
 ═══════════════════════════════════════════════ */
 (function(){
-  try{ localStorage.removeItem(STORAGE); }catch(e){}
-  createCard(null, true);
-  syncEmpty(); syncDateDisplay(); syncTimeDisplay();
+  var s=loadState();
+  if(s){
+    document.getElementById("from-inp").value=s.cityName||"";
+    fromTz=s.tz||Intl.DateTimeFormat().resolvedOptions().timeZone;
+    fromFmt=s.fmt||24;
+    var b12=document.getElementById("o-btn12"),b24=document.getElementById("o-btn24");
+    if(b12&&b24){
+      b12.classList.toggle("on",fromFmt===12); b12.setAttribute("aria-pressed",fromFmt===12);
+      b24.classList.toggle("on",fromFmt===24); b24.setAttribute("aria-pressed",fromFmt===24);
+    }
+    if(s.date) document.getElementById("in-date").value=s.date;
+    if(s.time) document.getElementById("in-time").value=s.time;
+    (s.dests||[]).forEach(function(d,i){ createCard(d,i===0); });
+    syncEmpty(); syncDateDisplay(); syncTimeDisplay();
+    convertAll();
+  } else {
+    createCard(null,true);
+    syncEmpty(); syncDateDisplay(); syncTimeDisplay();
+  }
 })();
 </script>
 </body>
