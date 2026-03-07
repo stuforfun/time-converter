@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="google" content="notranslate">
 <meta http-equiv="Content-Language" content="en">
 <title>Time Converter</title>
@@ -119,6 +120,7 @@ input.invalid,.outbox.invalid{border-color:var(--errbdr);background:var(--errbg)
 }
 /* flash on update */
 @keyframes flash{0%{background:var(--bluebg);}100%{background:var(--outbg);}}
+@keyframes flash-dest{0%{background:var(--redbg);}100%{background:var(--outbg);}}
 .outbox.flash,
 .date-display.flash,
 .time-display.flash{animation:flash .35s ease;}
