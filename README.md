@@ -22,7 +22,7 @@ Enter a date, time, and origin city — instantly see the equivalent local time 
 - **Multiple destinations** — add as many target cities as you need; first card is permanent, additional cards are removable
 - **12h / 24h toggle** per card, defaulting to 24h
 - **Coherent color system** — origin card in blue, destination cards in burgundy red
-- **Persistent state** — localStorage auto-saves your last session; reopening the app restores your cities and settings
+- **Stateless** — no session is saved between visits; the app starts fresh each time
 - **Mobile-friendly** — stacked single-column layout on small screens, side-by-side grid on desktop
 - **Accessible** — full ARIA attributes, keyboard navigation in dropdowns, screen reader announcements on result updates
 
@@ -43,7 +43,7 @@ Enter a date, time, and origin city — instantly see the equivalent local time 
 | Detail | Value |
 |---|---|
 | Architecture | Single self-contained HTML file |
-| Dependencies | None (zero npm, zero CDN at runtime) |
+| Dependencies | No npm · Google Fonts loaded from CDN at runtime |
 | Fonts | Google Fonts (Playfair Display + DM Mono) |
 | Cities | 1,055 entries · 1,039 unique names · 44 aliases |
 | Algorithm | `Intl.DateTimeFormat` + iterative `wallToUTC` for DST correctness |
