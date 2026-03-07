@@ -22,7 +22,7 @@ Enter a date, time, and origin city — instantly see the equivalent local time 
 - **Multiple destinations** — add as many target cities as you need; first card is permanent, additional cards are removable
 - **12h / 24h toggle** per card, defaulting to 24h
 - **Coherent color system** — origin card in blue, destination cards in burgundy red
-- **Stateless** — no session is saved between visits; the app starts fresh each time
+- **Persistent state** — localStorage auto-saves your last session; reopening the app restores your cities, date, time, and format settings
 - **Mobile-friendly** — stacked single-column layout on small screens, side-by-side grid on desktop
 - **Accessible** — full ARIA attributes, keyboard navigation in dropdowns, screen reader announcements on result updates
 
