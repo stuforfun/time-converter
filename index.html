@@ -1921,6 +1921,8 @@ document.getElementById("add-slot").addEventListener("click",function(){
     document.getElementById("from-inp").value=s.cityName||"";
     fromTz=s.tz||Intl.DateTimeFormat().resolvedOptions().timeZone;
     fromFmt=s.fmt||24;
+    var otz=document.getElementById("origin-tz");
+    if(otz&&s.tz){ otz.textContent=utcLabel(s.tz); otz.classList.add("live"); }
     var b12=document.getElementById("o-btn12"),b24=document.getElementById("o-btn24");
     if(b12&&b24){
       b12.classList.toggle("on",fromFmt===12); b12.setAttribute("aria-pressed",fromFmt===12);
