@@ -1696,7 +1696,8 @@ function clearAll(){ ["err-city","err-date","err-time"].forEach(clearErr); }
 function validateOrigin(strict){
   var ok=true;
   if(!fromTz||!document.getElementById("from-inp").value.trim()){
-    showErr("err-city"); ok=false;
+    if(strict){ showErr("err-city"); }  // only show error on explicit user action
+    ok=false;
   }
   // Only show date/time errors in strict mode (user explicitly tried to convert)
   // or when the field was already touched
