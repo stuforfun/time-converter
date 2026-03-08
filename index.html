@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="google" content="notranslate">
 <meta http-equiv="Content-Language" content="en">
 <title>Time Converter</title>
@@ -119,6 +120,7 @@ input.invalid,.outbox.invalid{border-color:var(--errbdr);background:var(--errbg)
 }
 /* flash on update */
 @keyframes flash{0%{background:var(--bluebg);}100%{background:var(--outbg);}}
+@keyframes flash-dest{0%{background:var(--redbg);}100%{background:var(--outbg);}}
 .outbox.flash,
 .date-display.flash,
 .time-display.flash{animation:flash .35s ease;}
@@ -1914,9 +1916,27 @@ document.getElementById("add-slot").addEventListener("click",function(){
    INIT
 ═══════════════════════════════════════════════ */
 (function(){
-  try{ localStorage.removeItem(STORAGE); }catch(e){}
-  createCard(null, true);
-  syncEmpty(); syncDateDisplay(); syncTimeDisplay();
+  var s=loadState();
+  if(s){
+    document.getElementById("from-inp").value=s.cityName||"";
+    fromTz=s.tz||Intl.DateTimeFormat().resolvedOptions().timeZone;
+    fromFmt=s.fmt||24;
+    var otz=document.getElementById("origin-tz");
+    if(otz&&s.tz){ otz.textContent=utcLabel(s.tz); otz.classList.add("live"); }
+    var b12=document.getElementById("o-btn12"),b24=document.getElementById("o-btn24");
+    if(b12&&b24){
+      b12.classList.toggle("on",fromFmt===12); b12.setAttribute("aria-pressed",fromFmt===12);
+      b24.classList.toggle("on",fromFmt===24); b24.setAttribute("aria-pressed",fromFmt===24);
+    }
+    if(s.date) document.getElementById("in-date").value=s.date;
+    if(s.time) document.getElementById("in-time").value=s.time;
+    (s.dests||[]).forEach(function(d,i){ createCard(d,i===0); });
+    syncEmpty(); syncDateDisplay(); syncTimeDisplay();
+    convertAll();
+  } else {
+    createCard(null,true);
+    syncEmpty(); syncDateDisplay(); syncTimeDisplay();
+  }
 })();
 </script>
 </body>
