@@ -1563,6 +1563,7 @@ document.getElementById("from-inp").addEventListener("input",function(){
     var otz=document.getElementById("origin-tz");
     if(otz){ otz.textContent="e.g. UTC+09:00"; otz.classList.remove("live","flash"); }
     fromTz=null;
+    try{ localStorage.removeItem(STORAGE); }catch(e){}
   }
 });
 
@@ -1799,7 +1800,10 @@ function buildState(){
 }
 
 function saveState(){
-  if(!fromTz||!document.getElementById("from-inp").value.trim()) return;
+  if(!fromTz||!document.getElementById("from-inp").value.trim()){
+    try{ localStorage.removeItem(STORAGE); }catch(e){}
+    return;
+  }
   try{ localStorage.setItem(STORAGE,JSON.stringify(buildState())); }catch(e){}
 }
 
