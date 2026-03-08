@@ -1799,6 +1799,7 @@ function buildState(){
 }
 
 function saveState(){
+  if(!fromTz||!document.getElementById("from-inp").value.trim()) return;
   try{ localStorage.setItem(STORAGE,JSON.stringify(buildState())); }catch(e){}
 }
 
@@ -1917,12 +1918,12 @@ document.getElementById("add-slot").addEventListener("click",function(){
 ═══════════════════════════════════════════════ */
 (function(){
   var s=loadState();
-  if(s){
-    document.getElementById("from-inp").value=s.cityName||"";
-    fromTz=s.tz||Intl.DateTimeFormat().resolvedOptions().timeZone;
+  if(s&&s.cityName&&s.tz){
+    document.getElementById("from-inp").value=s.cityName;
+    fromTz=s.tz;
     fromFmt=s.fmt||24;
     var otz=document.getElementById("origin-tz");
-    if(otz&&s.tz){ otz.textContent=utcLabel(s.tz); otz.classList.add("live"); }
+    if(otz){ otz.textContent=utcLabel(s.tz); otz.classList.add("live"); }
     var b12=document.getElementById("o-btn12"),b24=document.getElementById("o-btn24");
     if(b12&&b24){
       b12.classList.toggle("on",fromFmt===12); b12.setAttribute("aria-pressed",fromFmt===12);
@@ -1930,7 +1931,9 @@ document.getElementById("add-slot").addEventListener("click",function(){
     }
     if(s.date) document.getElementById("in-date").value=s.date;
     if(s.time) document.getElementById("in-time").value=s.time;
-    (s.dests||[]).forEach(function(d,i){ createCard(d,i===0); });
+    var validDests=(s.dests||[]).filter(function(d){return d.tz&&d.cityName;});
+    if(validDests.length){ validDests.forEach(function(d,i){ createCard(d,i===0); }); }
+    else { createCard(null,true); }
     syncEmpty(); syncDateDisplay(); syncTimeDisplay();
     convertAll();
   } else {
