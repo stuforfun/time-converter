@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="google" content="notranslate">
 <meta http-equiv="Content-Language" content="en">
 <title>Time Converter</title>
@@ -119,6 +120,7 @@ input.invalid,.outbox.invalid{border-color:var(--errbdr);background:var(--errbg)
 }
 /* flash on update */
 @keyframes flash{0%{background:var(--bluebg);}100%{background:var(--outbg);}}
+@keyframes flash-dest{0%{background:var(--redbg);}100%{background:var(--outbg);}}
 .outbox.flash,
 .date-display.flash,
 .time-display.flash{animation:flash .35s ease;}
@@ -1561,6 +1563,7 @@ document.getElementById("from-inp").addEventListener("input",function(){
     var otz=document.getElementById("origin-tz");
     if(otz){ otz.textContent="e.g. UTC+09:00"; otz.classList.remove("live","flash"); }
     fromTz=null;
+    try{ localStorage.removeItem(STORAGE); }catch(e){}
   }
 });
 
@@ -1693,7 +1696,8 @@ function clearAll(){ ["err-city","err-date","err-time"].forEach(clearErr); }
 function validateOrigin(strict){
   var ok=true;
   if(!fromTz||!document.getElementById("from-inp").value.trim()){
-    showErr("err-city"); ok=false;
+    if(strict){ showErr("err-city"); }  // only show error on explicit user action
+    ok=false;
   }
   // Only show date/time errors in strict mode (user explicitly tried to convert)
   // or when the field was already touched
@@ -1797,6 +1801,10 @@ function buildState(){
 }
 
 function saveState(){
+  if(!fromTz||!document.getElementById("from-inp").value.trim()){
+    try{ localStorage.removeItem(STORAGE); }catch(e){}
+    return;
+  }
   try{ localStorage.setItem(STORAGE,JSON.stringify(buildState())); }catch(e){}
 }
 
@@ -1914,9 +1922,29 @@ document.getElementById("add-slot").addEventListener("click",function(){
    INIT
 ═══════════════════════════════════════════════ */
 (function(){
-  try{ localStorage.removeItem(STORAGE); }catch(e){}
-  createCard(null, true);
-  syncEmpty(); syncDateDisplay(); syncTimeDisplay();
+  var s=loadState();
+  if(s&&s.cityName&&s.tz){
+    document.getElementById("from-inp").value=s.cityName;
+    fromTz=s.tz;
+    fromFmt=s.fmt||24;
+    var otz=document.getElementById("origin-tz");
+    if(otz){ otz.textContent=utcLabel(s.tz); otz.classList.add("live"); }
+    var b12=document.getElementById("o-btn12"),b24=document.getElementById("o-btn24");
+    if(b12&&b24){
+      b12.classList.toggle("on",fromFmt===12); b12.setAttribute("aria-pressed",fromFmt===12);
+      b24.classList.toggle("on",fromFmt===24); b24.setAttribute("aria-pressed",fromFmt===24);
+    }
+    if(s.date) document.getElementById("in-date").value=s.date;
+    if(s.time) document.getElementById("in-time").value=s.time;
+    var validDests=(s.dests||[]).filter(function(d){return d.tz&&d.cityName;});
+    if(validDests.length){ validDests.forEach(function(d,i){ createCard(d,i===0); }); }
+    else { createCard(null,true); }
+    syncEmpty(); syncDateDisplay(); syncTimeDisplay();
+    convertAll();
+  } else {
+    createCard(null,true);
+    syncEmpty(); syncDateDisplay(); syncTimeDisplay();
+  }
 })();
 </script>
 </body>
