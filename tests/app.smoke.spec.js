@@ -3,7 +3,10 @@ import { expect, test } from '@playwright/test';
 const STORAGE_KEY = 'tc-v2';
 
 async function loadWithState(page, state) {
-  await page.addInitScript(
+  // Seed storage once, then reload into the restored session.
+  // addInitScript re-runs on every navigation and would reintroduce stale state.
+  await page.goto('/');
+  await page.evaluate(
     ([key, value]) => {
       window.localStorage.clear();
       if (value !== null) {
@@ -12,8 +15,7 @@ async function loadWithState(page, state) {
     },
     [STORAGE_KEY, state]
   );
-
-  await page.goto('/');
+  await page.reload();
 }
 
 test('fresh load shows a clean default state', async ({ page }) => {
